@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backup Manager - Secure File Backup System</title>
+    <meta name="description" content="Professional backup management system with role-based authentication and secure file storage">
+    <meta name="author" content="Backup Systems Inc.">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Backup Manager - Secure File Backup System">
+    <meta property="og:description" content="Professional backup management system with role-based authentication and secure file storage">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png">
+    
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@backup_manager">
+    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png">
+    
+    <style>
+        /* Design System CSS Variables */
+        :root {
+            --background: 220 13% 9%;
+            --foreground: 220 9% 97%;
+            --card: 220 13% 11%;
+            --card-foreground: 220 9% 97%;
+            --popover: 220 13% 9%;
+            --popover-foreground: 220 9% 97%;
+            --primary: 217 91% 60%;
+            --primary-foreground: 0 0% 100%;
+            --secondary: 220 13% 15%;
+            --secondary-foreground: 220 9% 97%;
+            --muted: 220 13% 15%;
+            --muted-foreground: 220 9% 65%;
+            --accent: 220 13% 15%;
+            --accent-foreground: 220 9% 97%;
+            --destructive: 0 76% 60%;
+            --destructive-foreground: 0 0% 100%;
+            --border: 220 13% 20%;
+            --input: 220 13% 20%;
+            --ring: 217 91% 60%;
+            --info: 217 91% 60%;
+            --info-foreground: 0 0% 100%;
+            --success: 142 76% 36%;
+            --success-foreground: 0 0% 100%;
+            --warning: 45 93% 47%;
+            --warning-foreground: 0 0% 100%;
+            --danger: 0 76% 60%;
+            --danger-foreground: 0 0% 100%;
+            --radius: 0.5rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+        }
+
+        .btn-primary:hover {
+            background: hsl(var(--primary) / 0.9);
+        }
+
+        .btn-info {
+            background: hsl(var(--info));
+            color: hsl(var(--info-foreground));
+        }
+
+        .btn-info:hover {
+            background: hsl(var(--info) / 0.9);
+        }
+
+        .btn-success {
+            background: hsl(var(--success));
+            color: hsl(var(--success-foreground));
+        }
+
+        .btn-success:hover {
+            background: hsl(var(--success) / 0.9);
+        }
+
+        .btn-danger {
+            background: hsl(var(--danger));
+            color: hsl(var(--danger-foreground));
+        }
+
+        .btn-danger:hover {
+            background: hsl(var(--danger) / 0.9);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: hsl(var(--foreground));
+            border: 1px solid hsl(var(--border));
+        }
+
+        .btn-outline:hover {
+            background: hsl(var(--accent));
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        /* Card Styles */
+        .card {
+            background: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        }
+
+        .card-header {
+            padding: 1.5rem 1.5rem 0;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        /* Input Styles */
+        .input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            background: hsl(var(--background));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            color: hsl(var(--foreground));
+            font-size: 0.875rem;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: hsl(var(--card));
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            max-width: 90vw;
+            width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            margin-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-description {
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            justify-content: flex-end;
+        }
+
+        /* Header Styles */
+        .header {
+            background: hsl(var(--card));
+            border-bottom: 1px solid hsl(var(--border));
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-icon {
+            width: 2rem;
+            height: 2rem;
+            background: hsl(var(--info) / 0.1);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: hsl(var(--info));
+        }
+
+        .header-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .header-text p {
+            font-size: 0.875rem;
+            color: hsl(var(--muted-foreground));
+        }
+
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            text-align: right;
+            display: none;
+        }
+
+        @media (min-width: 640px) {
+            .user-info {
+                display: block;
+            }
+        }
+
+        .user-role {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .user-limit {
+            font-size: 0.75rem;
+            color: hsl(var(--muted-foreground));
+        }
+
+        /* Storage Info Styles */
+        .storage-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .storage-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .storage-progress {
+            width: 100%;
+            height: 0.5rem;
+            background: hsl(var(--secondary));
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .storage-progress-bar {
+            height: 100%;
+            background: hsl(var(--info));
+            transition: width 0.3s;
+        }
+
+        .storage-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid hsl(var(--border));
+        }
+
+        .storage-stat {
+            text-align: center;
+        }
+
+        .storage-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .storage-label {
+            font-size: 0.75rem;
+            color: hsl(var(--muted-foreground));
+        }
+
+        /* Search and Actions */
+        .search-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .search-actions {
+                flex-direction: row;
+            }
+        }
+
+        .search-container {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: hsl(var(--muted-foreground));
+        }
+
+        .search-input {
+            padding-left: 2.5rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Folder Grid */
+        .folders-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .folders-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .folders-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .folders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .folder-card {
+            background: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .folder-card:hover {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .folder-icon {
+            width: 2rem;
+            height: 2rem;
+            margin: 0 auto 0.5rem;
+            color: hsl(var(--info));
+        }
+
+        .folder-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .folder-count {
+            position: absolute;
+            top: -0.5rem;
+            right: -0.5rem;
+            background: hsl(var(--info));
+            color: hsl(var(--info-foreground));
+            border-radius: 50%;
+            width: 1.5rem;
+            height: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid hsl(var(--border));
+        }
+
+        .table th {
+            background: hsl(var(--muted));
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .table td {
+            font-size: 0.875rem;
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .pagination-info {
+            font-size: 0.875rem;
+            color: hsl(var(--muted-foreground));
+            margin: 0 1rem;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            background: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            z-index: 1001;
+            max-width: 300px;
+        }
+
+        .notification.success {
+            border-color: hsl(var(--success));
+        }
+
+        .notification.error {
+            border-color: hsl(var(--danger));
+        }
+
+        .notification.info {
+            border-color: hsl(var(--info));
+        }
+
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            background: hsl(var(--popover));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            padding: 0.25rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            z-index: 1002;
+        }
+
+        .context-menu-item {
+            display: block;
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+            background: none;
+            border: none;
+            color: hsl(var(--foreground));
+            cursor: pointer;
+            border-radius: calc(var(--radius) - 0.125rem);
+            font-size: 0.875rem;
+        }
+
+        .context-menu-item:hover {
+            background: hsl(var(--accent));
+        }
+
+        /* Maintenance Page */
+        .maintenance-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .maintenance-card {
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .maintenance-icon {
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1.5rem;
+            color: hsl(var(--warning));
+        }
+
+        .maintenance-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .maintenance-timer {
+            font-size: 3rem;
+            font-weight: 700;
+            color: hsl(var(--info));
+            margin: 1.5rem 0;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 0.5rem;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .table {
+                min-width: 600px;
+            }
+
+            .folders-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+
+            .modal {
+                width: 95vw;
+                padding: 1rem;
+            }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+        }
+
+        .text-xs {
+            font-size: 0.75rem;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .w-4 {
+            width: 1rem;
+        }
+
+        .h-4 {
+            height: 1rem;
+        }
+
+        .w-5 {
+            width: 1.25rem;
+        }
+
+        .h-5 {
+            height: 1.25rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Application Container -->
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="header-logo">
+                        <div class="header-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                        </div>
+                        <div class="header-text">
+                            <h1>Backup Manager</h1>
+                            <p>Secure File Backup System</p>
+                        </div>
+                    </div>
+                    <div class="header-user">
+                        <div class="user-info" id="userInfo" style="display: none;">
+                            <div class="user-role" id="userRole"></div>
+                            <div class="user-limit" id="userLimit"></div>
+                        </div>
+                        <button id="authBtn" class="btn btn-info">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                            </svg>
+                            Login
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Login View -->
+        <div id="loginView" class="container" style="padding: 4rem 1rem; text-align: center;">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem;">Please login to access the backup system</h2>
+            <button id="loginBtn" class="btn btn-info">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                </svg>
+                Login
+            </button>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div id="dashboard" class="container hidden" style="padding: 1.5rem 1rem;">
+            <!-- Storage Info -->
+            <div class="card storage-info">
+                <div class="card-header">
+                    <div class="storage-header">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                        </svg>
+                        <h3 class="card-title">Storage Information</h3>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <span>Used: <span id="usedStorage">0 Bytes</span></span>
+                            <span>Total: <span id="totalStorage">16 TB</span></span>
+                        </div>
+                        <div class="storage-progress">
+                            <div class="storage-progress-bar" id="storageProgressBar" style="width: 0%;"></div>
+                        </div>
+                        <div style="text-align: center; font-size: 0.875rem; color: hsl(var(--muted-foreground));">
+                            <span id="freeStorage">16 TB</span> free (<span id="freePercentage">100.0</span>% available)
+                        </div>
+                    </div>
+                    <div class="storage-stats">
+                        <div class="storage-stat">
+                            <div class="storage-value" style="color: hsl(var(--info));" id="usedStorageValue">0 Bytes</div>
+                            <div class="storage-label">Used Space</div>
+                        </div>
+                        <div class="storage-stat">
+                            <div class="storage-value" style="color: hsl(var(--success));" id="freeStorageValue">16 TB</div>
+                            <div class="storage-label">Free Space</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Actions -->
+            <div class="search-actions">
+                <div class="search-container">
+                    <svg class="search-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" id="searchInput" class="input search-input" placeholder="Search backup files...">
+                </div>
+                <div class="actions">
+                    <button id="importBtn" class="btn btn-info">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        Import
+                    </button>
+                    <button id="createFolderBtn" class="btn btn-info">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Create
+                    </button>
+                </div>
+            </div>
+
+            <!-- Folders Section -->
+            <div class="folders-section">
+                <div class="folders-header">
+                    <div class="folders-title">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                        </svg>
+                        Folders
+                    </div>
+                    <button id="createFolderBtn2" class="btn btn-info btn-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Create Folder
+                    </button>
+                </div>
+                <button id="backBtn" class="btn btn-outline btn-sm mb-4 hidden">← Back to Root</button>
+                <div class="folders-grid" id="foldersGrid">
+                    <div class="card" style="padding: 2rem; text-align: center; color: hsl(var(--muted-foreground));">
+                        <svg style="width: 3rem; height: 3rem; margin: 0 auto 1rem; opacity: 0.5;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                        </svg>
+                        <p>No folders in this location</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Files Table -->
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Number</th>
+                            <th>Name</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Size</th>
+                            <th>Format</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="filesTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem; color: hsl(var(--muted-foreground));">
+                                No backup files found
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button id="prevPageBtn" class="btn btn-outline" disabled>Previous</button>
+                <div class="pagination-info">
+                    Page <span id="currentPageSpan">1</span> of <span id="totalPagesSpan">1</span>
+                </div>
+                <button id="nextPageBtn" class="btn btn-outline" disabled>Next</button>
+            </div>
+        </div>
+
+        <!-- Maintenance Page -->
+        <div id="maintenancePage" class="maintenance-page hidden">
+            <div class="card maintenance-card">
+                <div class="card-content">
+                    <svg class="maintenance-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.268 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <h1 class="maintenance-title">System Maintenance</h1>
+                    <p>We're performing scheduled maintenance to improve your experience.</p>
+                    <div class="maintenance-timer" id="maintenanceTimer">00:00:00</div>
+                    <p style="color: hsl(var(--muted-foreground)); font-size: 0.875rem;">
+                        Thank you for your patience. We'll be back shortly.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden File Input -->
+    <input type="file" id="fileInput" multiple accept=".txt,.json,.xml,.csv,.vbk,.vib,.bff,.zip,.tar,.gz,.gzip,.sql,.dump,.bkp,.backup,.daf,.7z,.rar,.bak,.docx,.xlsx,.pptx,.svg,.mp3,.html,.php,.css,.js,.py,.pgsql,.png,.jpg,.mp4,.jpeg,.mpeg,.wav,.pdf,.db" style="display: none;">
+
+    <!-- Modals -->
+    <div id="passwordModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Administrator Login</h2>
+                <p class="modal-description" id="modalDescription">Enter your administrator password</p>
+            </div>
+            <div style="margin: 1rem 0;">
+                <input type="password" id="passwordInput" class="input" placeholder="Enter password">
+            </div>
+            <div class="modal-footer">
+                <button id="modalCancelBtn" class="btn btn-outline">Cancel</button>
+                <button id="modalConfirmBtn" class="btn btn-info">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="editModalTitle">Edit File Name</h2>
+            </div>
+            <div style="margin: 1rem 0;">
+                <input type="text" id="editNameInput" class="input" placeholder="Enter new name">
+            </div>
+            <div class="modal-footer">
+                <button id="editCancelBtn" class="btn btn-outline">Cancel</button>
+                <button id="editSaveBtn" class="btn btn-success">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="moveModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Move to Folder</h2>
+                <p class="modal-description">Select destination folder</p>
+            </div>
+            <div style="margin: 1rem 0;">
+                <select id="folderSelect" class="input">
+                    <option value="">Root Folder</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button id="moveCancelBtn" class="btn btn-outline">Cancel</button>
+                <button id="moveSaveBtn" class="btn btn-success">Move</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Delete Item</h2>
+                <p class="modal-description" id="deleteDescription">This will permanently delete the item and all its contents. This action cannot be undone.</p>
+            </div>
+            <div style="margin: 1rem 0;">
+                <input type="password" id="deletePasswordInput" class="input" placeholder="Enter deletion password">
+            </div>
+            <div class="modal-footer">
+                <button id="deleteCancelBtn" class="btn btn-outline">Cancel</button>
+                <button id="deleteConfirmBtn" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="contextMenu" class="context-menu hidden">
+        <button class="context-menu-item" id="contextEdit">Edit</button>
+        <button class="context-menu-item" id="contextDuplicate">Duplicate</button>
+        <button class="context-menu-item" id="contextDelete">Delete</button>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification hidden">
+        <div id="notificationMessage"></div>
+    </div>
+
+    <script>
+        // Application State
+        let currentUser = null;
+        let backupFiles = JSON.parse(localStorage.getItem('backupFiles') || '[]');
+        let folders = JSON.parse(localStorage.getItem('folders') || '[]');
+        let currentFolderId = null;
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let searchTerm = '';
+        let contextMenuTarget = null;
+        let currentModalAction = null;
+        let selectedFile = null;
+        let selectedFolder = null;
+
+        // Constants
+        const TOTAL_STORAGE = 16 * 1024 * 1024 * 1024 * 1024; // 16 TB
+        const SUPPORTED_FORMATS = ['.txt', '.json', '.xml', '.csv', '.vbk', '.vib', '.bff', '.zip', '.tar', '.gz', '.gzip', '.sql', '.dump', '.bkp', '.backup', '.daf', '.7z', '.rar', '.bak', '.docx', '.xlsx', '.pptx', '.svg', '.mp3', '.html', '.php', '.css', '.js', '.py', '.pgsql', '.png', '.jpg', '.mp4', '.jpeg', '.mpeg', '.wav', '.pdf', '.db'];
+
+        // User Roles with Hashed Passwords
+        const USER_ROLES = {
+            'c7ad44cbad762a5da0a452f9e854fdc1e0e7a52a38015f23f3eab1d80b931dd472634dfac71cd34ebc35d16ab7fb8a90c81f975113d6c7538dc69dd8de9077ec': {
+                name: 'User',
+                maxFileSize: 512 * 1024 * 1024 * 1024 // 512 GB
+            },
+            '89e01536ac207279409d4de1e5253e01f4a1769e696db0d6062ca9b8f56767c8c2c557d2e8b6f375c9de1640a5d8b5e8a8a8f4c8e85a7d8c3d78d5b9e8e7c9f': {
+                name: 'Moderator', 
+                maxFileSize: 2 * 1024 * 1024 * 1024 // 2 GB
+            },
+            'f7ce3d1e8b9a2c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2p3q4r': {
+                name: 'Administrator',
+                maxFileSize: 16 * 1024 * 1024 * 1024 * 1024 // 16 TB
+            }
+        };
+
+        const DELETE_PASSWORD_HASH = 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3r4s5t6u7v8w9x0y1z2';
+
+        // SHA-512 Implementation
+        async function sha512(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-512', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
+        // Utility Functions
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const messageEl = document.getElementById('notificationMessage');
+            
+            notification.className = `notification ${type}`;
+            messageEl.textContent = message;
+            notification.classList.remove('hidden');
+            
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 2000);
+        }
+
+        function updateStorageInfo() {
+            const usedStorage = backupFiles.reduce((total, file) => total + file.size, 0);
+            const freeStorage = TOTAL_STORAGE - usedStorage;
+            const usagePercentage = (usedStorage / TOTAL_STORAGE) * 100;
+
+            document.getElementById('usedStorage').textContent = formatBytes(usedStorage);
+            document.getElementById('freeStorage').textContent = formatBytes(freeStorage);
+            document.getElementById('freePercentage').textContent = (100 - usagePercentage).toFixed(1);
+            document.getElementById('storageProgressBar').style.width = usagePercentage + '%';
+            document.getElementById('usedStorageValue').textContent = formatBytes(usedStorage);
+            document.getElementById('freeStorageValue').textContent = formatBytes(freeStorage);
+        }
+
+        function showModal(modalId, title, description, confirmText = 'Confirm', action = null) {
+            const modal = document.getElementById(modalId);
+            if (modalId === 'passwordModal') {
+                document.getElementById('modalTitle').textContent = title;
+                document.getElementById('modalDescription').textContent = description;
+                document.getElementById('modalConfirmBtn').textContent = confirmText;
+                document.getElementById('passwordInput').value = '';
+            }
+            modal.classList.remove('hidden');
+            currentModalAction = action;
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+            currentModalAction = null;
+        }
+
+        function renderFolders() {
+            const foldersGrid = document.getElementById('foldersGrid');
+            const currentFolders = folders.filter(f => f.parentId === currentFolderId);
+            
+            if (currentFolders.length === 0) {
+                foldersGrid.innerHTML = `
+                    <div class="card" style="padding: 2rem; text-align: center; color: hsl(var(--muted-foreground));">
+                        <svg style="width: 3rem; height: 3rem; margin: 0 auto 1rem; opacity: 0.5;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                        </svg>
+                        <p>No folders in this location</p>
+                    </div>
+                `;
+                return;
+            }
+
+            foldersGrid.innerHTML = currentFolders.map(folder => {
+                const fileCount = backupFiles.filter(f => f.folderId === folder.id).length;
+                return `
+                    <div class="folder-card" data-folder-id="${folder.id}" oncontextmenu="showFolderContextMenu(event, '${folder.id}')">
+                        <svg class="folder-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                        </svg>
+                        <div class="folder-name" title="${folder.name}">${folder.name}</div>
+                        ${fileCount > 0 ? `<div class="folder-count">${fileCount}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Add click listeners
+            document.querySelectorAll('.folder-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const folderId = card.getAttribute('data-folder-id');
+                    currentFolderId = folderId;
+                    renderFolders();
+                    renderFiles();
+                    updateBackButton();
+                });
+            });
+        }
+
+        function updateBackButton() {
+            const backBtn = document.getElementById('backBtn');
+            if (currentFolderId) {
+                backBtn.classList.remove('hidden');
+            } else {
+                backBtn.classList.add('hidden');
+            }
+        }
+
+        function renderFiles() {
+            const tbody = document.getElementById('filesTableBody');
+            const filteredFiles = backupFiles.filter(file => {
+                const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesFolder = file.folderId === currentFolderId;
+                return matchesSearch && matchesFolder;
+            });
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedFiles = filteredFiles.slice(startIndex, endIndex);
+            const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
+
+            if (paginatedFiles.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 2rem; color: hsl(var(--muted-foreground));">
+                            No backup files found
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = paginatedFiles.map((file, index) => `
+                    <tr>
+                        <td>${startIndex + index + 1}</td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${file.name}">${file.name}</td>
+                        <td>${file.date}</td>
+                        <td>${file.time}</td>
+                        <td>${formatBytes(file.size)}</td>
+                        <td>${file.format}</td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="btn btn-info btn-sm" onclick="exportFile('${file.id}')">Export</button>
+                                <button class="btn btn-info btn-sm" onclick="editFile('${file.id}')">Edit</button>
+                                <button class="btn btn-info btn-sm" onclick="moveFile('${file.id}')">Move</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteFile('${file.id}')">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // Update pagination
+            document.getElementById('currentPageSpan').textContent = currentPage;
+            document.getElementById('totalPagesSpan').textContent = totalPages;
+            document.getElementById('prevPageBtn').disabled = currentPage <= 1;
+            document.getElementById('nextPageBtn').disabled = currentPage >= totalPages;
+        }
+
+        function updateFolderSelect() {
+            const select = document.getElementById('folderSelect');
+            select.innerHTML = '<option value="">Root Folder</option>';
+            folders.forEach(folder => {
+                select.innerHTML += `<option value="${folder.id}">${folder.name}</option>`;
+            });
+        }
+
+        // Authentication Functions
+        async function login(password) {
+            const hashedPassword = await sha512(password);
+            const userRole = Object.entries(USER_ROLES).find(([hash]) => hash === hashedPassword);
+            
+            if (userRole) {
+                const [hash, role] = userRole;
+                currentUser = {
+                    role: role.name,
+                    maxFileSize: role.maxFileSize,
+                    isAuthenticated: true
+                };
+                localStorage.setItem('userSession', JSON.stringify(currentUser));
+                
+                document.getElementById('loginView').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('userRole').textContent = `Welcome, ${currentUser.role}`;
+                document.getElementById('userLimit').textContent = `Max file size: ${formatBytes(currentUser.maxFileSize)}`;
+                document.getElementById('authBtn').innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                    </svg>
+                    Exit
+                `;
+                document.getElementById('authBtn').className = 'btn btn-danger';
+                
+                updateStorageInfo();
+                renderFolders();
+                renderFiles();
+                showNotification(`Welcome, ${currentUser.role}!`, 'success');
+                return true;
+            } else {
+                showNotification('Invalid password', 'error');
+                return false;
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('userSession');
+            currentFolderId = null;
+            searchTerm = '';
+            currentPage = 1;
+            
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('loginView').classList.remove('hidden');
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('authBtn').innerHTML = `
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                </svg>
+                Login
+            `;
+            document.getElementById('authBtn').className = 'btn btn-info';
+            
+            showNotification('Logged out successfully', 'info');
+        }
+
+        // File Management Functions
+        async function importFiles(password) {
+            const hashedPassword = await sha512(password);
+            const isValidUser = Object.keys(USER_ROLES).includes(hashedPassword);
+            
+            if (isValidUser) {
+                document.getElementById('fileInput').click();
+                return true;
+            } else {
+                showNotification('Invalid password for import', 'error');
+                return false;
+            }
+        }
+
+        async function handleFileSelect(event) {
+            const files = Array.from(event.target.files || []);
+            if (!files.length || !currentUser) return;
+
+            const validFiles = files.filter(file => {
+                const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+                return SUPPORTED_FORMATS.includes(extension);
+            });
+
+            if (validFiles.length !== files.length) {
+                showNotification('Some files were skipped due to unsupported format', 'error');
+            }
+
+            const oversizedFiles = validFiles.filter(file => file.size > currentUser.maxFileSize);
+            if (oversizedFiles.length > 0) {
+                showNotification(`Files exceed maximum size limit (${formatBytes(currentUser.maxFileSize)})`, 'error');
+                return;
+            }
+
+            const newFiles = [];
+            for (const file of validFiles) {
+                const now = new Date();
+                const backupFile = {
+                    id: crypto.randomUUID(),
+                    name: file.name,
+                    originalName: file.name,
+                    date: now.toLocaleDateString(),
+                    time: now.toLocaleTimeString(),
+                    size: file.size,
+                    format: '.' + file.name.split('.').pop()?.toLowerCase(),
+                    folderId: currentFolderId,
+                    content: await file.arrayBuffer()
+                };
+                newFiles.push(backupFile);
+            }
+
+            backupFiles.push(...newFiles);
+            localStorage.setItem('backupFiles', JSON.stringify(backupFiles));
+            updateStorageInfo();
+            renderFiles();
+            showNotification(`Successfully imported ${newFiles.length} file(s)`, 'success');
+            
+            // Reset file input
+            event.target.value = '';
+        }
+
+        async function exportFile(fileId) {
+            selectedFile = backupFiles.find(f => f.id === fileId);
+            if (!selectedFile) return;
+            
+            showModal('passwordModal', 'Export Backup File', 'Enter password to export file', 'Export', async (password) => {
+                const hashedPassword = await sha512(password);
+                const isValidUser = Object.keys(USER_ROLES).includes(hashedPassword);
+                
+                if (isValidUser && selectedFile.content) {
+                    const blob = new Blob([selectedFile.content], { type: 'application/octet-stream' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = selectedFile.originalName;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    
+                    showNotification(`Exported ${selectedFile.name}`, 'success');
+                    hideModal('passwordModal');
+                } else {
+                    showNotification('Invalid password for export', 'error');
+                }
+            });
+        }
+
+        function editFile(fileId) {
+            selectedFile = backupFiles.find(f => f.id === fileId);
+            if (!selectedFile) return;
+            
+            document.getElementById('editModalTitle').textContent = 'Edit File Name';
+            document.getElementById('editNameInput').value = selectedFile.name;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function moveFile(fileId) {
+            selectedFile = backupFiles.find(f => f.id === fileId);
+            if (!selectedFile) return;
+            
+            updateFolderSelect();
+            document.getElementById('folderSelect').value = selectedFile.folderId || '';
+            document.getElementById('moveModal').classList.remove('hidden');
+        }
+
+        async function deleteFile(fileId) {
+            selectedFile = backupFiles.find(f => f.id === fileId);
+            if (!selectedFile) return;
+            
+            document.getElementById('deleteDescription').textContent = 'Enter deletion password to permanently delete this file';
+            document.getElementById('deletePasswordInput').value = '';
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        // Folder Management Functions
+        function createFolder() {
+            const folderName = prompt('Enter folder name:');
+            if (!folderName?.trim()) return;
+
+            const newFolder = {
+                id: crypto.randomUUID(),
+                name: folderName.trim(),
+                parentId: currentFolderId,
+                createdAt: new Date().toISOString()
+            };
+
+            folders.push(newFolder);
+            localStorage.setItem('folders', JSON.stringify(folders));
+            renderFolders();
+            showNotification('Folder created successfully', 'success');
+        }
+
+        function showFolderContextMenu(event, folderId) {
+            event.preventDefault();
+            contextMenuTarget = folders.find(f => f.id === folderId);
+            
+            const contextMenu = document.getElementById('contextMenu');
+            contextMenu.style.left = event.clientX + 'px';
+            contextMenu.style.top = event.clientY + 'px';
+            contextMenu.classList.remove('hidden');
+            
+            // Hide context menu when clicking elsewhere
+            document.addEventListener('click', hideContextMenu, { once: true });
+        }
+
+        function hideContextMenu() {
+            document.getElementById('contextMenu').classList.add('hidden');
+            contextMenuTarget = null;
+        }
+
+        function editFolder() {
+            if (!contextMenuTarget) return;
+            selectedFolder = contextMenuTarget;
+            
+            document.getElementById('editModalTitle').textContent = 'Edit Folder Name';
+            document.getElementById('editNameInput').value = selectedFolder.name;
+            document.getElementById('editModal').classList.remove('hidden');
+            hideContextMenu();
+        }
+
+        function duplicateFolder() {
+            if (!contextMenuTarget) return;
+            
+            const newFolder = {
+                ...contextMenuTarget,
+                id: crypto.randomUUID(),
+                name: `${contextMenuTarget.name} (Copy)`,
+                createdAt: new Date().toISOString()
+            };
+            
+            folders.push(newFolder);
+            localStorage.setItem('folders', JSON.stringify(folders));
+            renderFolders();
+            showNotification('Folder duplicated successfully', 'success');
+            hideContextMenu();
+        }
+
+        async function deleteFolder() {
+            if (!contextMenuTarget) return;
+            selectedFolder = contextMenuTarget;
+            
+            document.getElementById('deleteDescription').textContent = 'This will permanently delete the folder and all its contents. Enter deletion password to confirm.';
+            document.getElementById('deletePasswordInput').value = '';
+            document.getElementById('deleteModal').classList.remove('hidden');
+            hideContextMenu();
+        }
+
+        // Maintenance Mode
+        function getPersistentMaintenanceSchedule() {
+            const stored = localStorage.getItem('maintenanceSchedule');
+            if (stored) {
+                const schedule = JSON.parse(stored);
+                if (schedule.isActive && Date.now() > schedule.endTime) {
+                    localStorage.removeItem('maintenanceSchedule');
+                    return { isActive: false, endTime: 0, duration: 0 };
+                }
+                return schedule;
+            }
+            return { isActive: false, endTime: 0, duration: 0 };
+        }
+
+        function startMaintenanceMode(durationMinutes) {
+            const duration = durationMinutes * 60 * 1000;
+            const schedule = {
+                isActive: true,
+                endTime: Date.now() + duration,
+                duration: duration
+            };
+            localStorage.setItem('maintenanceSchedule', JSON.stringify(schedule));
+            showMaintenancePage(schedule);
+        }
+
+        function showMaintenancePage(schedule) {
+            document.getElementById('app').innerHTML = '';
+            document.getElementById('maintenancePage').classList.remove('hidden');
+            
+            const timer = setInterval(() => {
+                const remaining = schedule.endTime - Date.now();
+                if (remaining <= 0) {
+                    clearInterval(timer);
+                    localStorage.removeItem('maintenanceSchedule');
+                    location.reload();
+                    return;
+                }
+                
+                const hours = Math.floor(remaining / (1000 * 60 * 60));
+                const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+                
+                document.getElementById('maintenanceTimer').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for existing session
+            const savedSession = localStorage.getItem('userSession');
+            if (savedSession) {
+                currentUser = JSON.parse(savedSession);
+                if (currentUser.isAuthenticated) {
+                    document.getElementById('loginView').classList.add('hidden');
+                    document.getElementById('dashboard').classList.remove('hidden');
+                    document.getElementById('userInfo').style.display = 'block';
+                    document.getElementById('userRole').textContent = `Welcome, ${currentUser.role}`;
+                    document.getElementById('userLimit').textContent = `Max file size: ${formatBytes(currentUser.maxFileSize)}`;
+                    document.getElementById('authBtn').innerHTML = `
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                        </svg>
+                        Exit
+                    `;
+                    document.getElementById('authBtn').className = 'btn btn-danger';
+                    updateStorageInfo();
+                    renderFolders();
+                    renderFiles();
+                }
+            }
+
+            // Check for maintenance mode
+            const maintenanceSchedule = getPersistentMaintenanceSchedule();
+            if (maintenanceSchedule.isActive) {
+                showMaintenancePage(maintenanceSchedule);
+                return;
+            }
+
+            // Auth button
+            document.getElementById('authBtn').addEventListener('click', function() {
+                if (currentUser?.isAuthenticated) {
+                    showModal('passwordModal', 'Confirm Logout', 'Are you sure you want to log out?', 'Exit', () => {
+                        logout();
+                        hideModal('passwordModal');
+                    });
+                } else {
+                    showModal('passwordModal', 'Administrator Login', 'Enter your administrator password', 'Login', async (password) => {
+                        if (await login(password)) {
+                            hideModal('passwordModal');
+                        }
+                    });
+                }
+            });
+
+            document.getElementById('loginBtn').addEventListener('click', function() {
+                showModal('passwordModal', 'Administrator Login', 'Enter your administrator password', 'Login', async (password) => {
+                    if (await login(password)) {
+                        hideModal('passwordModal');
+                    }
+                });
+            });
+
+            // Import button
+            document.getElementById('importBtn').addEventListener('click', function() {
+                showModal('passwordModal', 'Import Backup Files', 'Enter password to import files', 'Import', async (password) => {
+                    if (await importFiles(password)) {
+                        hideModal('passwordModal');
+                    }
+                });
+            });
+
+            // Create folder buttons
+            document.getElementById('createFolderBtn').addEventListener('click', createFolder);
+            document.getElementById('createFolderBtn2').addEventListener('click', createFolder);
+
+            // Back button
+            document.getElementById('backBtn').addEventListener('click', function() {
+                currentFolderId = null;
+                renderFolders();
+                renderFiles();
+                updateBackButton();
+            });
+
+            // Search
+            document.getElementById('searchInput').addEventListener('input', function(e) {
+                searchTerm = e.target.value;
+                currentPage = 1;
+                renderFiles();
+            });
+
+            // Pagination
+            document.getElementById('prevPageBtn').addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderFiles();
+                }
+            });
+
+            document.getElementById('nextPageBtn').addEventListener('click', function() {
+                const totalPages = Math.ceil(backupFiles.filter(file => {
+                    const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchesFolder = file.folderId === currentFolderId;
+                    return matchesSearch && matchesFolder;
+                }).length / itemsPerPage);
+                
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderFiles();
+                }
+            });
+
+            // File input
+            document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+            // Modal handlers
+            document.getElementById('modalCancelBtn').addEventListener('click', () => hideModal('passwordModal'));
+            document.getElementById('modalConfirmBtn').addEventListener('click', function() {
+                const password = document.getElementById('passwordInput').value;
+                if (password && currentModalAction) {
+                    currentModalAction(password);
+                }
+            });
+
+            // Edit modal handlers
+            document.getElementById('editCancelBtn').addEventListener('click', () => {
+                document.getElementById('editModal').classList.add('hidden');
+                selectedFile = null;
+                selectedFolder = null;
+            });
+            
+            document.getElementById('editSaveBtn').addEventListener('click', function() {
+                const newName = document.getElementById('editNameInput').value.trim();
+                if (!newName) return;
+                
+                if (selectedFile) {
+                    const updatedFiles = backupFiles.map(file =>
+                        file.id === selectedFile.id ? { ...file, name: newName } : file
+                    );
+                    backupFiles = updatedFiles;
+                    localStorage.setItem('backupFiles', JSON.stringify(backupFiles));
+                    renderFiles();
+                    showNotification('File renamed successfully', 'success');
+                } else if (selectedFolder) {
+                    const updatedFolders = folders.map(folder =>
+                        folder.id === selectedFolder.id ? { ...folder, name: newName } : folder
+                    );
+                    folders = updatedFolders;
+                    localStorage.setItem('folders', JSON.stringify(folders));
+                    renderFolders();
+                    showNotification('Folder renamed successfully', 'success');
+                }
+                
+                document.getElementById('editModal').classList.add('hidden');
+                selectedFile = null;
+                selectedFolder = null;
+            });
+
+            // Move modal handlers
+            document.getElementById('moveCancelBtn').addEventListener('click', () => {
+                document.getElementById('moveModal').classList.add('hidden');
+                selectedFile = null;
+            });
+            
+            document.getElementById('moveSaveBtn').addEventListener('click', function() {
+                if (!selectedFile) return;
+                
+                const targetFolderId = document.getElementById('folderSelect').value || null;
+                const updatedFiles = backupFiles.map(file =>
+                    file.id === selectedFile.id ? { ...file, folderId: targetFolderId } : file
+                );
+                backupFiles = updatedFiles;
+                localStorage.setItem('backupFiles', JSON.stringify(backupFiles));
+                renderFiles();
+                showNotification('File moved successfully', 'success');
+                
+                document.getElementById('moveModal').classList.add('hidden');
+                selectedFile = null;
+            });
+
+            // Delete modal handlers
+            document.getElementById('deleteCancelBtn').addEventListener('click', () => {
+                document.getElementById('deleteModal').classList.add('hidden');
+                selectedFile = null;
+                selectedFolder = null;
+            });
+            
+            document.getElementById('deleteConfirmBtn').addEventListener('click', async function() {
+                const password = document.getElementById('deletePasswordInput').value;
+                const hashedPassword = await sha512(password);
+                
+                if (hashedPassword === DELETE_PASSWORD_HASH) {
+                    if (selectedFile) {
+                        backupFiles = backupFiles.filter(file => file.id !== selectedFile.id);
+                        localStorage.setItem('backupFiles', JSON.stringify(backupFiles));
+                        updateStorageInfo();
+                        renderFiles();
+                        showNotification('File deleted successfully', 'success');
+                    } else if (selectedFolder) {
+                        // Delete folder and all its files
+                        folders = folders.filter(folder => folder.id !== selectedFolder.id);
+                        backupFiles = backupFiles.filter(file => file.folderId !== selectedFolder.id);
+                        localStorage.setItem('folders', JSON.stringify(folders));
+                        localStorage.setItem('backupFiles', JSON.stringify(backupFiles));
+                        updateStorageInfo();
+                        renderFolders();
+                        renderFiles();
+                        showNotification('Folder and its contents deleted successfully', 'success');
+                    }
+                    
+                    document.getElementById('deleteModal').classList.add('hidden');
+                    selectedFile = null;
+                    selectedFolder = null;
+                } else {
+                    showNotification('Invalid deletion password', 'error');
+                }
+            });
+
+            // Context menu handlers
+            document.getElementById('contextEdit').addEventListener('click', editFolder);
+            document.getElementById('contextDuplicate').addEventListener('click', duplicateFolder);
+            document.getElementById('contextDelete').addEventListener('click', deleteFolder);
+
+            // Close modals when clicking outside
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === overlay) {
+                        overlay.classList.add('hidden');
+                        selectedFile = null;
+                        selectedFolder = null;
+                    }
+                });
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal-overlay').forEach(modal => {
+                        modal.classList.add('hidden');
+                    });
+                    hideContextMenu();
+                    selectedFile = null;
+                    selectedFolder = null;
+                }
+            });
+        });
+
+        // Make functions globally accessible for onclick handlers
+        window.exportFile = exportFile;
+        window.editFile = editFile;
+        window.moveFile = moveFile;
+        window.deleteFile = deleteFile;
+        window.showFolderContextMenu = showFolderContextMenu;
+        window.startMaintenanceMode = startMaintenanceMode;
+    </script>
+</body>
+</html>
