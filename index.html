@@ -1,752 +1,441 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hy">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>AI QEZ BACKUP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IP Address List Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'primary': '#1a202c',
+              'secondary': '#2d3748',
+              'accent': '#4a5568',
+              'highlight': '#38b2ac',
+              'text-primary': '#e2e8f0',
+              'text-secondary': '#a0aec0',
+            },
+          },
+        },
+      }
+    </script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        @keyframes fade-in-scale {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        .animate-fade-in-scale {
-            animation: fade-in-scale 0.3s forwards;
-        }
-        /* Styles for the maintenance page */
-        .maintenance-body-active {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        .background-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-        }
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* 50% black transparency */
-        }
-         /* For custom scrollbar */
+        /* Custom scrollbar for webkit browsers */
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
+            height: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: #1f2937;
+            background: #2d3748; /* secondary color */
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #4b5563;
+            background-color: #4a5568; /* accent color */
             border-radius: 4px;
+            border: 2px solid #2d3748; /* secondary color */
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #6b7280;
+            background-color: #38b2ac; /* highlight color */
+        }
+        /* For Firefox */
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #4a5568 #2d3748;
         }
     </style>
 </head>
-<body class="bg-gray-900">
-    <div id="root"></div>
-
-    <!-- React and ReactDOM UMD builds -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<body class="bg-primary text-text-primary font-sans">
     
-    <!-- Babel Standalone for JSX and modern JS transpilation -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <script type="text/babel">
-        const { useState, useEffect, useRef, useMemo, useCallback } = React;
-
-        // --- Constants ---
-        const INITIAL_ROLES = {
-          USER: {
-            name: 'User',
-            passHash: '34d60c167db86fa9b328c3085d5edc5b011597b05e405f2c8173ffb9ac8e2dc8df4e8347ac74a27692bd92dff1e8c3c5a5ab1acf6b761a093f62f74e2aaea986', // user123
-            limit: 10 * 1024 * 1024 * 1024, // 10 GB
-            permissions: ['import', 'edit', 'move', 'delete'],
-            folderLimit: 5,
-          },
-          MODERATOR: {
-            name: 'Moderator',
-            passHash: 'd29372d813a3d0e8350b72ca7996c1d517bfdb41f43afd11d9ed07cab1cad28a3f9663a94ef5e32a489fae104086e7a4d1250ee68ebd58797ab3b9eab0476f4f', // moderator123
-            limit: 128 * 1024 * 1024 * 1024, // 128 GB
-            permissions: ['import', 'edit', 'move', 'delete'],
-            folderLimit: 10,
-          },
-          ADMIN: {
-            name: 'Administrator',
-            passHash: '4bafc43a0b8a798f0ef61553a70bbd0747800aa1daeb08043607d950d6f1d99ed5f4aff589fc9e9a32dbd6ca2e0860e22036293908a1d869f7a7be29d36dcdf1', // admin123
-            limit: 16 * 1024 * 1024 * 1024 * 1024, // 16 TB
-            permissions: ['import', 'edit', 'move', 'delete', 'manage_folders', 'maintenance', 'admin_panel'],
-            folderLimit: Infinity,
-          }
-        };
-        const DELETE_PASSWORD_HASH = '1f1f1d24a5c53b15425a1656b8e83363297a7ebb2a38626601f2f05a2f5752c2864197c36a644955b405c935104445c0a3ccb5f0e03a9f02375908b079730f59'; // Delete!
-        const TOTAL_STORAGE_BYTES = 16 * 1024 * 1024 * 1024 * 1024; // 16 TB
-        const ITEMS_PER_PAGE = 10;
-        const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes
-        const INITIAL_SUPPORTED_FILE_FORMATS = [
-            '.txt', '.json', '.xml', '.csv', '.vbk', '.vib', '.bff', '.zip', '.tar', '.gz', '.gzip', '.sql', '.dump', '.bkp', '.backup', '.daf', '.7z', '.rar', '.bak', '.docx', '.xlsx', '.pptx', '.svg', '.mp3', '.html', '.php', '.css','.js', '.py', '.pgsql', '.png', '.jpg', '.mp4', '.jpeg', '.mpeg', '.wav', '.pdf', '.db',
-        ];
-        
-        // --- Services & Hooks ---
-        const hashString = (input) => CryptoJS.SHA512(input).toString(CryptoJS.enc.Hex);
-        
-        function useLocalStorage(key, initialValue) {
-            const [storedValue, setStoredValue] = useState(() => {
-                try {
-                    const item = window.localStorage.getItem(key);
-                    return item ? JSON.parse(item) : initialValue;
-                } catch (error) {
-                    console.error(error);
-                    return initialValue;
-                }
-            });
-
-            const setValue = (value) => {
-                try {
-                    const valueToStore = value instanceof Function ? value(storedValue) : value;
-                    setStoredValue(valueToStore);
-                    window.localStorage.setItem(key, JSON.stringify(valueToStore));
-                } catch (error) {
-                    console.error(error);
-                }
-            };
-
-            return [storedValue, setValue];
-        }
-
-        // --- UI Icons ---
-        const ICONS = {
-            Dashboard: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
-            Content: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
-            Files: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>,
-            Formats: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z" /></svg>,
-            Folders: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" /></svg>,
-            Settings: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
-            Logout: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>,
-            Delete: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>,
-            Edit: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>,
-            Download: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 9.293a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" /></svg>,
-            Plus: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>,
-            Move: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L9 5.414V17a1 1 0 102 0V5.414l5.293 5.293a1 1 0 001.414-1.414l-7-7z" /></svg>,
-            Folder: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" /></svg>,
-            Back: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" /></svg>,
-            Copy: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" /><path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h6a2 2 0 00-2-2H5z" /></svg>,
-            Menu: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>,
-            Close: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>,
-            Users: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197" /></svg>,
-            Disk: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>,
-            Api: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
-            Database: () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10m16-10v10M4 13h16m0-6h-4.28a2 2 0 00-1.789.89l-2.863 4.294a2 2 0 01-1.789.89H8.28a2 2 0 01-1.789-.89L3.627 7.89A2 2 0 001.838 7H1.5M4 7h.01" /></svg>,
-        };
-        
-        // --- Shared Components ---
-
-        const Notification = ({ message, type = 'success', show }) => {
-          const bgColor = type === 'success' ? 'bg-green-600' : 'bg-red-600';
-          return (
-            <div className={`fixed bottom-5 right-5 p-4 rounded-lg shadow-lg text-white ${bgColor} transition-transform duration-500 ease-in-out z-[100] ${show ? 'translate-x-0' : 'translate-x-[calc(100%+20px)]'}`}>
-              {message}
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Header -->
+        <header class="mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary">
+                    IP Address List
+                </h1>
+                <div class="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-4">
+                    <div class="relative w-full sm:w-64">
+                        <input
+                          id="search-input"
+                          type="text"
+                          placeholder="Որոնում..."
+                          class="w-full bg-secondary border border-accent rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-highlight text-text-primary placeholder-text-secondary"
+                        />
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="h-5 w-5 text-text-secondary"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                    </div>
+                    <button id="add-button" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-highlight hover:bg-teal-500 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                        <span>Ավելացնել</span>
+                    </button>
+                </div>
             </div>
-          );
-        };
+        </header>
 
-        const BUTTON_CLASSES = {
-            logout: "bg-[#dc2626] hover:bg-red-700 text-[#e5e7eb]",
-            exit: "bg-[#dc2626] hover:bg-red-700 text-[#e5e7eb]",
-            login: "bg-[#2563eb] hover:bg-blue-700 text-[#e5e7eb]",
-            delete: "bg-[#dc2626] hover:bg-red-700 text-[#e5e7eb]",
-            create: "bg-[#2563eb] hover:bg-blue-700 text-[#e5e7eb]",
-            edit: "bg-[#2563eb] hover:bg-blue-700 text-[#e5e7eb]",
-            save: "bg-[#16a34a] hover:bg-green-700 text-[#e5e7eb]",
-            download: "bg-[#16a34a] hover:bg-green-700 text-[#e5e7eb]",
-            disable: "bg-[#dc2626] hover:bg-red-700 text-[#e5e7eb]",
-            enable: "bg-[#16a34a] hover:bg-green-700 text-[#e5e7eb]",
-            cancel: "bg-[#4b5563] hover:bg-gray-700 text-[#e5e7eb]",
-            copy: "bg-[#2563eb] hover:bg-blue-700 text-[#e5e7eb]",
-            default: "bg-gray-600 hover:bg-gray-700 text-white",
-        };
+        <!-- Main Content -->
+        <main>
+            <div id="no-records-message" class="hidden text-center py-16 bg-secondary rounded-lg">
+                <h2 class="text-xl text-text-secondary">Գրառումներ չկան</h2>
+                <p class="mt-2 text-text-secondary">Սեղմեք "Ավելացնել"՝ նոր IP հասցե ավելացնելու համար:</p>
+            </div>
+            <div id="table-container" class="bg-secondary shadow-lg rounded-lg overflow-hidden">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="min-w-full leading-normal">
+                        <thead>
+                            <tr class="border-b-2 border-accent bg-accent text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                                <th class="px-5 py-3">No.</th>
+                                <th class="px-5 py-3">Department</th>
+                                <th class="px-5 py-3">Vlan</th>
+                                <th class="px-5 py-3">Subnet Mask</th>
+                                <th class="px-5 py-3">Default Gateway</th>
+                                <th class="px-5 py-3">Usable IP addresses</th>
+                                <th class="px-5 py-3">Network Address</th>
+                                <th class="px-5 py-3">Broadcast Address</th>
+                                <th class="px-5 py-3">Նշումներ</th>
+                                <th class="px-5 py-3 text-center">Գործողություն</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ip-table-body">
+                            <!-- Rows will be injected here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
 
-        const AppButton = ({ onClick, children, variant = 'default', type = 'button', disabled = false, className = '' }) => (
-            <button
-                type={type}
-                onClick={onClick}
-                disabled={disabled}
-                className={`font-bold py-2 px-4 rounded-md transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${BUTTON_CLASSES[variant] || BUTTON_CLASSES.default} ${className}`}
-            >
-                {children}
-            </button>
+    <!-- Modals -->
+    <!-- Form Modal -->
+    <div id="form-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
+        <div class="bg-secondary rounded-lg shadow-xl w-full max-w-lg max-h-full overflow-y-auto custom-scrollbar">
+            <div class="p-6">
+                <h2 id="form-modal-title" class="text-2xl font-bold mb-6 text-text-primary"></h2>
+                <form id="ip-form" class="space-y-4">
+                    <input type="hidden" id="record-id" name="id">
+                    <div>
+                        <label for="department" class="block text-sm font-medium text-text-secondary mb-1">Department</label>
+                        <input type="text" id="department" name="department" class="w-full bg-primary border border-accent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-highlight text-text-primary">
+                    </div>
+                    <div>
+                        <label for="vlan" class="block text-sm font-medium text-text-secondary mb-1">Vlan</label>
+                        <input type="text" id="vlan" name="vlan" class="w-full bg-primary border border-accent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-highlight text-text-primary">
+                    </div>
+                    <div>
+                        <label for="subnetMask" class="block text-sm font-medium text-text-secondary mb-1">SubNet MASK</label>
+                        <input type="text" id="subnetMask" name="subnetMask" class="w-full bg-primary border border-accent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-highlight text-text-primary">
+                    </div>
+                    <div>
+                        <label for="defaultGateway" class="block text-sm font-medium text-text-secondary mb-1">Default Gateway</label>
+                        <input type="text" id="defaultGateway" name="defaultGateway" class="w-full bg-primary border border-accent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-highlight text-text-primary">
+                    </div>
+                    <div>
+                        <label for="usableIPs" class="block text-sm font-medium text-text-secondary mb-1">Usable IP addresses</label>
+                        <input type="text" id="usableIPs" name="usableIPs" class="w-full bg-primary border border-accent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-highlight text-text-primary">
+                    </div>
+                    <div>
+                        <label for="networkAddress" class="block text-sm font-medium text-text-secondary mb-1">Network Address</label>
+                        <input type="text" id="networkAddress" name="networkAddress" class="w-full bg-primary border border-accent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-highlight text-text-primary">
+                    </div>
+                    <div>
+                        <label for="broadcastAddress" class="block text-sm font-medium text-text-secondary mb-1">Broadcast Address</label>
+                        <input type="text" id="broadcastAddress" name="broadcastAddress" class="w-full bg-primary border border-accent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-highlight text-text-primary">
+                    </div>
+                    <div>
+                        <label for="notes" class="block text-sm font-medium text-text-secondary mb-1">Նշումներ</label>
+                        <textarea id="notes" name="notes" rows="3" class="w-full bg-primary border border-accent rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-highlight text-text-primary"></textarea>
+                    </div>
+                    <div class="flex justify-end gap-4 pt-6">
+                        <button type="button" id="form-cancel-button" class="py-2 px-4 bg-accent hover:bg-gray-600 text-text-primary font-semibold rounded-lg transition-colors duration-300">Չեղարկել</button>
+                        <button type="submit" id="form-submit-button" class="py-2 px-4 bg-highlight hover:bg-teal-500 text-white font-semibold rounded-lg transition-colors duration-300"></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
+        <div class="bg-secondary rounded-lg shadow-xl w-full max-w-sm">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-4 text-text-primary">Հաստատում</h2>
+                <p class="text-text-secondary mb-6">Վստա՞հ եք, որ ցանկանում եք ջնջել:</p>
+                <div class="flex justify-end gap-4">
+                    <button id="confirm-cancel-button" class="py-2 px-4 bg-accent hover:bg-gray-600 text-text-primary font-semibold rounded-lg transition-colors duration-300">Չեղարկել</button>
+                    <button id="confirm-delete-button" class="py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors duration-300">Ջնջել</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Validation Error Modal -->
+    <div id="validation-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
+        <div class="bg-secondary rounded-lg shadow-xl w-full max-w-sm">
+            <div class="p-6 text-center">
+                <h2 class="text-xl font-bold mb-4 text-text-primary">Ուշադրություն</h2>
+                <p class="text-text-secondary mb-6">Խնդրում ենք լրացնել բոլոր դատարկ դաշտերը:</p>
+                <div class="flex justify-center gap-4">
+                    <button id="validation-close-button" class="py-2 px-6 bg-highlight hover:bg-teal-500 text-white font-semibold rounded-lg transition-colors duration-300">Փակել</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // State
+    let ipRecords = [];
+    let editingRecordId = null;
+    let deletingRecordId = null;
+
+    // DOM Elements
+    const tableBody = document.getElementById('ip-table-body');
+    const noRecordsMessage = document.getElementById('no-records-message');
+    const tableContainer = document.getElementById('table-container');
+    const searchInput = document.getElementById('search-input');
+    
+    // Modals
+    const formModal = document.getElementById('form-modal');
+    const confirmationModal = document.getElementById('confirmation-modal');
+    const validationModal = document.getElementById('validation-modal');
+
+    // Form Elements
+    const ipForm = document.getElementById('ip-form');
+    const formModalTitle = document.getElementById('form-modal-title');
+    const formSubmitButton = document.getElementById('form-submit-button');
+
+    // Buttons
+    const addButton = document.getElementById('add-button');
+    const formCancelButton = document.getElementById('form-cancel-button');
+    const confirmCancelButton = document.getElementById('confirm-cancel-button');
+    const confirmDeleteButton = document.getElementById('confirm-delete-button');
+    const validationCloseButton = document.getElementById('validation-close-button');
+
+    // --- Data Persistence ---
+    const loadRecords = () => {
+        try {
+            const savedRecords = localStorage.getItem('ipRecords');
+            ipRecords = savedRecords ? JSON.parse(savedRecords) : [];
+        } catch (error) {
+            console.error("Failed to parse IP records from localStorage", error);
+            ipRecords = [];
+        }
+    };
+
+    const saveRecords = () => {
+        try {
+            localStorage.setItem('ipRecords', JSON.stringify(ipRecords));
+        } catch (error) {
+            console.error("Failed to save IP records to localStorage", error);
+        }
+    };
+
+    // --- Rendering ---
+    const renderTable = () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        const filteredRecords = ipRecords.filter(record =>
+            Object.values(record).some(value =>
+                String(value).toLowerCase().includes(searchTerm)
+            )
         );
 
-        const GeneralModal = ({ children, onClose, title }) => {
-            useEffect(() => {
-                const handleEsc = (event) => { if (event.key === 'Escape') onClose(); };
-                window.addEventListener('keydown', handleEsc);
-                return () => window.removeEventListener('keydown', handleEsc);
-            }, [onClose]);
+        tableBody.innerHTML = '';
 
-            return (
-                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300" onClick={onClose}>
-                    <div className="bg-gray-800 rounded-lg shadow-xl p-6 md:p-8 w-11/12 max-w-md transform transition-all duration-300 scale-95 opacity-0 animate-fade-in-scale" onClick={(e) => e.stopPropagation()}>
-                        <h2 className="text-2xl font-bold text-white mb-4">{title}</h2>
-                        {children}
-                    </div>
-                </div>
-            );
-        };
-        
-        // --- Main Application Components (User-facing) ---
-        
-        // [This section contains the existing user-facing components like StorageInfo, BackupTable, Header, etc.]
-        // [Minor modifications might be made to adapt to the new structure.]
+        if (filteredRecords.length === 0) {
+            noRecordsMessage.classList.remove('hidden');
+            tableContainer.classList.add('hidden');
+        } else {
+            noRecordsMessage.classList.add('hidden');
+            tableContainer.classList.remove('hidden');
+            filteredRecords.forEach((record, index) => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-accent hover:bg-accent/50 transition-colors duration-200';
+                row.dataset.id = record.id;
 
-        const StorageInfo = ({ used, total }) => {
-          const formatBytes = (bytes, decimals = 2) => {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const dm = decimals < 0 ? 0 : decimals;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-          };
-          const usedPercent = total > 0 ? (used / total) * 100 : 0;
-          return (
-            <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
-              <div className="flex justify-between items-center mb-2 text-sm text-gray-400">
-                <span>Used: {formatBytes(used)}</span>
-                <span>Total: {formatBytes(total)}</span>
-              </div>
-              <div className="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
-                <div className="bg-blue-600 h-4 rounded-full transition-all duration-500 ease-out" style={{ width: `${usedPercent}%` }}></div>
-              </div>
-            </div>
-          );
-        };
+                const createCopyableCell = (text) => {
+                    const cell = document.createElement('td');
+                    cell.className = 'px-5 py-4 text-sm';
 
-        // ... Other existing components from the original file ...
-        
-        // --- Admin Dashboard Components ---
-        
-        const AdminSidebar = ({ activePage, setActivePage, onLogout, isMobileMenuOpen, setMobileMenuOpen }) => {
-            const menuItems = [
-                { id: 'panel', label: 'Panel', icon: <ICONS.Dashboard /> },
-                { id: 'content', label: 'Content', icon: <ICONS.Content /> },
-                { id: 'files', label: 'Files', icon: <ICONS.Files /> },
-                { id: 'formats', label: 'Formats', icon: <ICONS.Formats /> },
-                { id: 'folders', label: 'Folders', icon: <ICONS.Folders /> },
-                { id: 'settings', label: 'Settings', icon: <ICONS.Settings /> },
-            ];
+                    const container = document.createElement('div');
+                    container.className = 'flex items-center gap-2 group relative';
+                    
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'truncate';
+                    textSpan.title = text;
+                    textSpan.textContent = text || "-";
+                    
+                    const copyButton = document.createElement('button');
+                    copyButton.className = 'opacity-0 group-hover:opacity-100 text-text-secondary hover:text-highlight transition-all duration-200';
+                    copyButton.title = 'Պատճենել';
+                    copyButton.disabled = !text;
+                    copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>`;
+                    
+                    copyButton.onclick = () => {
+                        navigator.clipboard.writeText(text).then(() => {
+                            const copiedSpan = document.createElement('span');
+                            copiedSpan.className = 'absolute -top-6 left-0 text-xs bg-highlight text-white rounded px-2 py-1 transition-opacity duration-300';
+                            copiedSpan.textContent = 'Պատճենվել է!';
+                            container.appendChild(copiedSpan);
+                            setTimeout(() => copiedSpan.remove(), 2000);
+                        }).catch(err => console.error("Failed to copy text: ", err));
+                    };
 
-            const handleItemClick = (id) => {
-                setActivePage(id);
-                if (isMobileMenuOpen) setMobileMenuOpen(false);
-            };
+                    container.appendChild(textSpan);
+                    container.appendChild(copyButton);
+                    cell.appendChild(container);
+                    return cell;
+                };
+                
+                row.innerHTML = `<td class="px-5 py-4 text-sm">${index + 1}</td>`;
+                row.appendChild(createCopyableCell(record.department));
+                row.appendChild(createCopyableCell(record.vlan));
+                row.appendChild(createCopyableCell(record.subnetMask));
+                row.appendChild(createCopyableCell(record.defaultGateway));
+                row.appendChild(createCopyableCell(record.usableIPs));
+                row.appendChild(createCopyableCell(record.networkAddress));
+                row.appendChild(createCopyableCell(record.broadcastAddress));
+                
+                const notesCell = document.createElement('td');
+                notesCell.className = 'px-5 py-4 text-sm max-w-xs truncate';
+                notesCell.title = record.notes;
+                notesCell.textContent = record.notes;
+                row.appendChild(notesCell);
 
-            const sidebarContent = (
-                <div className="flex flex-col h-full">
-                    <div className="p-4 border-b border-gray-700">
-                        <h1 className="text-2xl font-bold text-white text-center">Admin Panel</h1>
-                    </div>
-                    <nav className="flex-1 p-2 space-y-2">
-                        {menuItems.map(item => (
-                            <button
-                                key={item.id}
-                                onClick={() => handleItemClick(item.id)}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-md text-lg transition-colors ${activePage === item.id ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
-                            >
-                                {item.icon}
-                                <span>{item.label}</span>
-                            </button>
-                        ))}
-                    </nav>
-                    <div className="p-4 border-t border-gray-700">
-                        <AppButton onClick={onLogout} variant="logout" className="w-full flex items-center justify-center gap-2">
-                            <ICONS.Logout /> Logout
-                        </AppButton>
-                    </div>
-                </div>
-            );
-
-            return (
-                <>
-                    {/* Desktop Sidebar */}
-                    <aside className="hidden lg:block w-64 bg-gray-800 shadow-md">
-                        {sidebarContent}
-                    </aside>
-                    {/* Mobile Sidebar */}
-                    <div className={`fixed inset-0 z-40 lg:hidden transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                         <div className="absolute inset-0 bg-black opacity-50" onClick={() => setMobileMenuOpen(false)}></div>
-                         <aside className="relative w-64 bg-gray-800 h-full shadow-md">
-                             {sidebarContent}
-                         </aside>
-                    </div>
-                </>
-            );
-        };
-        
-        const DashboardPanelPage = ({ backups, roles, currentUser }) => {
-            const usedStorage = useMemo(() => backups.reduce((acc, file) => acc + file.size, 0), [backups]);
-            const usedPercent = TOTAL_STORAGE_BYTES > 0 ? (usedStorage / TOTAL_STORAGE_BYTES) * 100 : 0;
-            const totalUsers = Object.keys(roles).length;
-            const activeUsers = currentUser ? 1 : 0; // Simplified for local version
-
-            const StatCard = ({ title, value, icon, subtext }) => (
-                <div className="bg-gray-800 p-6 rounded-lg shadow-lg flex items-center justify-between">
-                    <div>
-                        <p className="text-sm text-gray-400">{title}</p>
-                        <p className="text-3xl font-bold">{value}</p>
-                        <p className="text-xs text-gray-500">{subtext}</p>
-                    </div>
-                    <div className="bg-gray-700 p-3 rounded-full">{icon}</div>
-                </div>
-            );
-
-            return (
-                <div>
-                    <h2 className="text-3xl font-bold mb-6">Dashboard</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                        <StatCard title="Total Volume" value={`${(usedPercent).toFixed(2)}%`} subtext="16 TB Total" icon={<ICONS.Disk />} />
-                        <StatCard title="Used Volume" value={`${(usedStorage / (1024**4)).toFixed(2)} TB`} subtext="Across all users" icon={<ICONS.Disk color="blue"/>} />
-                        <StatCard title="Total Number of Users" value={totalUsers} subtext="All registered roles" icon={<ICONS.Users />} />
-                        <StatCard title="Number of Active Users" value={activeUsers} subtext="Currently logged in" icon={<ICONS.Users color="green" />} />
-                    </div>
-                </div>
-            );
-        };
-        
-        const DashboardContentPage = ({ showNotification }) => {
-            const [pageContent, setPageContent] = useLocalStorage('dashboard_content', {
-                welcomeTitle: 'Welcome to your Backup System',
-                announcement: 'System is running normally. No issues to report.'
+                const actionsCell = document.createElement('td');
+                actionsCell.className = 'px-5 py-4 text-sm text-center';
+                actionsCell.innerHTML = `
+                    <div class="flex items-center justify-center gap-4">
+                        <button data-action="duplicate" class="text-green-400 hover:text-green-300 transition-colors duration-200" title="Կրկնօրինակել">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75"></path></svg>
+                        </button>
+                        <button data-action="edit" class="text-blue-400 hover:text-blue-300 transition-colors duration-200" title="Խմբագրել">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L15.232 5.232z"></path></svg>
+                        </button>
+                        <button data-action="delete" class="text-red-400 hover:text-red-300 transition-colors duration-200" title="Ջնջել">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>`;
+                row.appendChild(actionsCell);
+                tableBody.appendChild(row);
             });
-            const [formData, setFormData] = useState(pageContent);
+        }
+    };
 
-            const handleSave = () => {
-                setPageContent(formData);
-                showNotification('Content saved successfully!', 'success');
-            };
+    // --- Modal Control ---
+    const openModal = (modal) => modal.classList.remove('hidden');
+    const closeModal = (modal) => modal.classList.add('hidden');
 
-            return (
-                <div>
-                    <h2 className="text-3xl font-bold mb-6">Content Management</h2>
-                    <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-                        <div className="mb-4">
-                            <label className="block text-gray-400 mb-2">Welcome Title</label>
-                            <input
-                                type="text"
-                                value={formData.welcomeTitle}
-                                onChange={e => setFormData({...formData, welcomeTitle: e.target.value})}
-                                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-4 text-gray-200"
-                            />
-                        </div>
-                        <div className="mb-6">
-                            <label className="block text-gray-400 mb-2">System Announcement</label>
-                            <textarea
-                                value={formData.announcement}
-                                onChange={e => setFormData({...formData, announcement: e.target.value})}
-                                rows="4"
-                                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-4 text-gray-200"
-                            ></textarea>
-                        </div>
-                        <AppButton onClick={handleSave} variant="save">Save Content</AppButton>
-                    </div>
-                </div>
-            );
-        };
+    // --- Event Handlers ---
+    const handleAddClick = () => {
+        editingRecordId = null;
+        ipForm.reset();
+        formModalTitle.textContent = 'Ավելացնել նոր IP գրառում';
+        formSubmitButton.textContent = 'Կատարել';
+        openModal(formModal);
+    };
 
-        const DashboardFilesPage = (props) => {
-            // This component will reuse the existing file management UI
-            // but for all users' files, as an admin would see.
-            // For simplicity in this local-only version, we'll just show the admin's files.
-            // A full implementation would filter based on a selected user.
-            return (
-                <div>
-                    <h2 className="text-3xl font-bold mb-6">File Management</h2>
-                    {/* Re-using the existing MainApplication's file/folder view logic would go here. */}
-                    <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-                        <p className="text-gray-400">File and folder management for the currently logged-in admin is available on the main user page. This section would typically allow viewing and managing files for all users.</p>
-                    </div>
-                </div>
-            )
+    const handleEditClick = (id) => {
+        const record = ipRecords.find(r => r.id === id);
+        if (record) {
+            editingRecordId = id;
+            for (const key in record) {
+                if (ipForm.elements[key]) {
+                    ipForm.elements[key].value = record[key];
+                }
+            }
+            formModalTitle.textContent = 'Խմբագրել IP գրառումը';
+            formSubmitButton.textContent = 'Պահպանել';
+            openModal(formModal);
+        }
+    };
+    
+    const handleDuplicateClick = (id) => {
+        const record = ipRecords.find(r => r.id === id);
+        if (record) {
+            editingRecordId = null; // Important: we're creating a new record
+            const { id: recordId, ...recordData } = record;
+            for (const key in recordData) {
+                if (ipForm.elements[key]) {
+                    ipForm.elements[key].value = recordData[key];
+                }
+            }
+            formModalTitle.textContent = 'Կրկնօրինակել IP գրառումը';
+            formSubmitButton.textContent = 'Կատարել';
+            openModal(formModal);
+        }
+    };
+
+    const handleDeleteRequest = (id) => {
+        deletingRecordId = id;
+        openModal(confirmationModal);
+    };
+
+    const handleDeleteConfirm = () => {
+        ipRecords = ipRecords.filter(record => record.id !== deletingRecordId);
+        deletingRecordId = null;
+        saveRecords();
+        renderTable();
+        closeModal(confirmationModal);
+    };
+
+    const handleFormSubmit = (e) => {
+        e.preventDefault();
+        const formData = new FormData(ipForm);
+        const recordData = Object.fromEntries(formData.entries());
+
+        const requiredFields = ['department', 'vlan', 'subnetMask', 'defaultGateway', 'usableIPs', 'networkAddress', 'broadcastAddress'];
+        const hasEmptyField = requiredFields.some(field => !recordData[field] || !recordData[field].trim());
+
+        if (hasEmptyField) {
+            openModal(validationModal);
+            return;
+        }
+
+        if (editingRecordId) {
+            const index = ipRecords.findIndex(r => r.id === editingRecordId);
+            if (index > -1) {
+                ipRecords[index] = { ...ipRecords[index], ...recordData };
+            }
+        } else {
+            const newRecord = { id: Date.now().toString(), ...recordData };
+            ipRecords.unshift(newRecord); // Add to the beginning
         }
         
-        const DashboardFormatsPage = ({ showNotification }) => {
-            const [formats, setFormats] = useLocalStorage('supported_formats', INITIAL_SUPPORTED_FILE_FORMATS);
-            const [newFormat, setNewFormat] = useState('');
+        editingRecordId = null;
+        saveRecords();
+        renderTable();
+        closeModal(formModal);
+    };
 
-            const handleAdd = () => {
-                if(newFormat && !newFormat.startsWith('.')) {
-                     showNotification('Format must start with a "."', 'error');
-                     return;
-                }
-                if (newFormat && !formats.includes(newFormat)) {
-                    setFormats(prev => [...prev, newFormat].sort());
-                    setNewFormat('');
-                    showNotification('Format added!', 'success');
-                } else {
-                    showNotification('Format is invalid or already exists.', 'error');
-                }
-            };
-            
-            const handleDelete = (formatToDelete) => {
-                setFormats(prev => prev.filter(f => f !== formatToDelete));
-                showNotification('Format removed!', 'success');
-            };
+    // --- Event Listeners ---
+    addButton.addEventListener('click', handleAddClick);
+    searchInput.addEventListener('input', renderTable);
+    ipForm.addEventListener('submit', handleFormSubmit);
 
-            return (
-                 <div>
-                    <h2 className="text-3xl font-bold mb-6">Supported File Formats</h2>
-                    <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-                        <div className="flex gap-2 mb-4">
-                            <input
-                                type="text"
-                                value={newFormat}
-                                onChange={e => setNewFormat(e.target.value)}
-                                placeholder="e.g., .jpeg"
-                                className="flex-grow bg-gray-700 border border-gray-600 rounded-md py-2 px-4 text-gray-200"
-                            />
-                            <AppButton onClick={handleAdd} variant="create">Add</AppButton>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                            {formats.map(format => (
-                                <div key={format} className="flex items-center justify-between bg-gray-700 p-2 rounded">
-                                    <span className="text-sm">{format}</span>
-                                    <button onClick={() => handleDelete(format)} className="text-red-500 hover:text-red-400"><ICONS.Delete /></button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )
+    formCancelButton.addEventListener('click', () => closeModal(formModal));
+    confirmCancelButton.addEventListener('click', () => closeModal(confirmationModal));
+    confirmDeleteButton.addEventListener('click', handleDeleteConfirm);
+    validationCloseButton.addEventListener('click', () => closeModal(validationModal));
+
+    // Delegate events for action buttons in the table
+    tableBody.addEventListener('click', (e) => {
+        const button = e.target.closest('button[data-action]');
+        if (button) {
+            const action = button.dataset.action;
+            const row = button.closest('tr');
+            const id = row.dataset.id;
+            if (action === 'edit') handleEditClick(id);
+            if (action === 'delete') handleDeleteRequest(id);
+            if (action === 'duplicate') handleDuplicateClick(id);
         }
-        
-        const DashboardSettingsPage = ({ roles, setRoles, showNotification, onSetMaintenance, maintenanceCode, setMaintenanceCode }) => {
-            const [activeTab, setActiveTab] = useState('security');
+    });
 
-            const handleBackupData = () => {
-                try {
-                    const data = JSON.stringify(localStorage);
-                    const blob = new Blob([data], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `dashboard_backup_${new Date().toISOString().split('T')[0]}.json`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    showNotification('Data backup downloaded.', 'success');
-                } catch (e) {
-                    showNotification('Failed to backup data.', 'error');
-                }
-            };
+    // --- Initialization ---
+    loadRecords();
+    renderTable();
+});
+</script>
 
-            const renderTabContent = () => {
-                switch(activeTab) {
-                    case 'security': return <SecuritySettings roles={roles} setRoles={setRoles} showNotification={showNotification} onBackupData={handleBackupData} />;
-                    case 'maintenance': return <MaintenanceSettings onSetMaintenance={onSetMaintenance} code={maintenanceCode} setCode={setMaintenanceCode} showNotification={showNotification}/>;
-                    case 'integration': return <IntegrationSettings showNotification={showNotification} />;
-                    case 'database': return <DatabaseSettings />;
-                    default: return null;
-                }
-            }
-
-            return (
-                <div>
-                    <h2 className="text-3xl font-bold mb-6">Settings</h2>
-                    <div className="flex border-b border-gray-700 mb-6">
-                        <button onClick={() => setActiveTab('security')} className={`px-4 py-2 ${activeTab === 'security' ? 'border-b-2 border-blue-500 text-white' : 'text-gray-400'}`}>Security</button>
-                        <button onClick={() => setActiveTab('maintenance')} className={`px-4 py-2 ${activeTab === 'maintenance' ? 'border-b-2 border-blue-500 text-white' : 'text-gray-400'}`}>Maintenance</button>
-                        <button onClick={() => setActiveTab('integration')} className={`px-4 py-2 ${activeTab === 'integration' ? 'border-b-2 border-blue-500 text-white' : 'text-gray-400'}`}>Integration</button>
-                        <button onClick={() => setActiveTab('database')} className={`px-4 py-2 ${activeTab === 'database' ? 'border-b-2 border-blue-500 text-white' : 'text-gray-400'}`}>DataBase</button>
-                    </div>
-                    {renderTabContent()}
-                </div>
-            );
-        };
-        
-        // Settings Sub-components
-        const SecuritySettings = ({ roles, setRoles, showNotification, onBackupData }) => {
-            // ... UI for managing roles, passwords, and backup data ...
-             return (
-                <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-                     <h3 className="text-xl font-bold mb-4">Data Backup</h3>
-                     <AppButton onClick={onBackupData} variant="download">Download Backup</AppButton>
-                     <h3 className="text-xl font-bold mb-4 mt-8">Role Management</h3>
-                     <p className="text-gray-400">Here you can manage user roles. Password changes require providing a new plain text password, which will be stored securely hashed.</p>
-                     {/* Role management UI would go here. For brevity, it is a placeholder. */}
-                </div>
-             )
-        };
-        const MaintenanceSettings = ({ onSetMaintenance, code, setCode, showNotification }) => {
-            const timers = [
-                { label: "Enable 5 minutes", minutes: 5 }, { label: "Enable 10 minutes", minutes: 10 },
-                { label: "Enable 15 minutes", minutes: 15 }, { label: "Enable 30 minutes", minutes: 30 },
-                { label: "Enable 60 minutes", minutes: 60 }, { label: "Enable 1 day", minutes: 1440 },
-            ];
-            
-            return (
-                <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 className="text-xl font-bold mb-4">Maintenance Page Activation</h3>
-                    <div className="flex flex-wrap gap-2 mb-6">
-                        {timers.map(timer => (
-                            <AppButton key={timer.minutes} onClick={() => onSetMaintenance(timer.minutes)} variant="enable">{timer.label}</AppButton>
-                        ))}
-                        <AppButton onClick={() => onSetMaintenance(0)} variant="disable">Disable Maintenance Page</AppButton>
-                    </div>
-                     <h3 className="text-xl font-bold mb-4">Maintenance Page Code Editor</h3>
-                     <textarea
-                        value={code}
-                        onChange={(e) => setCode(e.target.value)}
-                        className="w-full h-64 bg-gray-900 text-gray-300 font-mono p-4 rounded-md border border-gray-700"
-                        placeholder="Enter your HTML/CSS/JS for the maintenance page here..."
-                     />
-                     <AppButton onClick={() => showNotification('Code saved! It will be applied when maintenance is active.', 'success')} variant="save" className="mt-4">Save Code</AppButton>
-                </div>
-            );
-        };
-        const IntegrationSettings = ({ showNotification }) => {
-            const integrations = [
-                { name: "n8n Integration" }, { name: "Make Integration" }, { name: "JSON API Integration" },
-                { name: "JSON Drop API Integration" }, { name: "All Types API Integration" }, { name: "RESTful API Integration" },
-            ];
-
-            const handleCopy = (text) => {
-                navigator.clipboard.writeText(text).then(() => {
-                    showNotification('API Key copied to clipboard!', 'success');
-                });
-            };
-
-            return (
-                <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 className="text-xl font-bold mb-4">RESTful API Integrations</h3>
-                    <div className="space-y-4">
-                        {integrations.map(int => (
-                            <div key={int.name} className="bg-gray-700 p-4 rounded-md flex flex-col md:flex-row justify-between items-center gap-4">
-                                <span className="font-semibold">{int.name}</span>
-                                <div className="flex items-center gap-2">
-                                    <input type="text" readOnly value="********************" className="bg-gray-800 border-gray-600 rounded px-2 py-1 text-sm w-48"/>
-                                    <AppButton variant="copy" onClick={() => handleCopy("fake-api-key-for-demo")}>Copy</AppButton>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            );
-        };
-        const DatabaseSettings = () => {
-            const dbs = {
-                "SQL": ["MySQL", "PostgreSQL", "SQLite", "MariaDB", "Supabase"],
-                "NoSQL": ["MongoDB", "Firebase (Firestore)", "Cassandra", "CouchDB", "DynamoDB"]
-            };
-            return (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {Object.entries(dbs).map(([type, list]) => (
-                        <div key={type} className="bg-gray-800 p-6 rounded-lg shadow-lg">
-                            <h3 className="text-xl font-bold mb-4">{type} Databases</h3>
-                            <div className="space-y-3">
-                                {list.map(name => (
-                                    <div key={name} className="bg-gray-700 p-3 rounded-md flex justify-between items-center">
-                                        <span>{name}</span>
-                                        <AppButton variant="create">Integrate via API</AppButton>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            );
-        };
-
-        const AdminDashboard = ({ onLogout, backups, roles, currentUser, setRoles, showNotification, onSetMaintenance, maintenanceCode, setMaintenanceCode }) => {
-            const [activePage, setActivePage] = useState('panel');
-            const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
-            
-            const renderPage = () => {
-                switch (activePage) {
-                    case 'panel': return <DashboardPanelPage backups={backups} roles={roles} currentUser={currentUser} />;
-                    case 'content': return <DashboardContentPage showNotification={showNotification}/>;
-                    case 'files': return <DashboardFilesPage />; // Placeholder for now
-                    case 'formats': return <DashboardFormatsPage showNotification={showNotification} />;
-                    case 'folders': return <DashboardFilesPage />; // Placeholder for now, similar to files
-                    case 'settings': return <DashboardSettingsPage roles={roles} setRoles={setRoles} showNotification={showNotification} onSetMaintenance={onSetMaintenance} maintenanceCode={maintenanceCode} setMaintenanceCode={setMaintenanceCode} />;
-                    default: return <DashboardPanelPage backups={backups} roles={roles} currentUser={currentUser} />;
-                }
-            };
-
-            return (
-                <div className="flex h-screen bg-gray-900 text-gray-200">
-                    <AdminSidebar activePage={activePage} setActivePage={setActivePage} onLogout={onLogout} isMobileMenuOpen={isMobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen}/>
-                    <div className="flex-1 flex flex-col">
-                         <header className="lg:hidden bg-gray-800 shadow-md p-4 flex justify-between items-center">
-                            <button onClick={() => setMobileMenuOpen(true)} className="text-white"><ICONS.Menu /></button>
-                            <h1 className="text-xl font-bold">Admin Panel</h1>
-                            <div>{/* spacer */}</div>
-                        </header>
-                        <main className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar">
-                           {renderPage()}
-                        </main>
-                    </div>
-                </div>
-            );
-        };
-        
-        // --- Main App Component ---
-        
-        const App = () => {
-            const [view, setView] = useLocalStorage('appView', 'user');
-            const [currentUser, setCurrentUser] = useLocalStorage('currentUser', null);
-            const [backups, setBackups] = useLocalStorage('backups', []);
-            const [roles, setRoles] = useLocalStorage('roles', INITIAL_ROLES);
-            const [isLoginModalOpen, setLoginModalOpen] = useState(false);
-            const [loginError, setLoginError] = useState('');
-            const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
-            
-            // For maintenance mode
-            const [maintenanceEndTime, setMaintenanceEndTime] = useLocalStorage('maintenanceEndTime', null);
-            const [maintenanceCode, setMaintenanceCode] = useLocalStorage('maintenance_code', '<h1>Under Maintenance</h1>');
-            const [isMaintenanceActive, setIsMaintenanceActive] = useState(false);
-
-            useEffect(() => {
-                const interval = setInterval(() => {
-                    if (maintenanceEndTime && new Date().getTime() < maintenanceEndTime) {
-                        setIsMaintenanceActive(true);
-                    } else {
-                        if (isMaintenanceActive) setMaintenanceEndTime(null); // Clear expired time
-                        setIsMaintenanceActive(false);
-                    }
-                }, 1000);
-                return () => clearInterval(interval);
-            }, [maintenanceEndTime, isMaintenanceActive]);
-
-            const showNotification = useCallback((message, type = 'success') => {
-                setNotification({ show: true, message, type });
-                setTimeout(() => setNotification({ show: false, message: '', type }), 2000);
-            }, []);
-
-            const handleLogin = (password) => {
-                const passHash = hashString(password);
-                const userRoleKey = Object.keys(roles).find(key => roles[key].passHash === passHash);
-                if (userRoleKey) {
-                    setCurrentUser(userRoleKey);
-                    setLoginModalOpen(false);
-                    showNotification(`Welcome, ${roles[userRoleKey].name}!`, 'success');
-                    if (roles[userRoleKey].permissions.includes('admin_panel')) {
-                        setView('admin');
-                    }
-                } else {
-                    setLoginError('Invalid password.');
-                }
-            };
-            
-            const handleLogout = () => {
-                showNotification('You have been logged out.', 'success');
-                setCurrentUser(null);
-                setView('user');
-            };
-
-            const handleSetMaintenance = (minutes) => {
-                if (minutes > 0) {
-                    const endTime = new Date().getTime() + minutes * 60 * 1000;
-                    setMaintenanceEndTime(endTime);
-                    showNotification(`Maintenance mode enabled for ${minutes} minutes.`, 'success');
-                } else {
-                    setMaintenanceEndTime(null);
-                    showNotification('Maintenance mode disabled.', 'success');
-                }
-            };
-
-            if (isMaintenanceActive && currentUser !== 'ADMIN') {
-                 return <div dangerouslySetInnerHTML={{ __html: maintenanceCode }} />;
-            }
-
-            if (currentUser && roles[currentUser]?.permissions.includes('admin_panel') && view === 'admin') {
-                return (
-                    <>
-                    <AdminDashboard 
-                        onLogout={handleLogout}
-                        backups={backups}
-                        roles={roles}
-                        currentUser={currentUser}
-                        setRoles={setRoles}
-                        showNotification={showNotification}
-                        onSetMaintenance={handleSetMaintenance}
-                        maintenanceCode={maintenanceCode}
-                        setMaintenanceCode={setMaintenanceCode}
-                    />
-                    <Notification {...notification} />
-                    </>
-                );
-            }
-
-            // Simplified user view for this example
-            return (
-                 <div className="min-h-screen bg-gray-900 text-gray-200 flex flex-col items-center justify-center p-4">
-                    <div className="text-center">
-                        <h1 className="text-4xl font-bold mb-4">AI QEZ BACKUP</h1>
-                        {currentUser ? (
-                             <div>
-                                <p className="text-lg mb-4">Logged in as {roles[currentUser].name}.</p>
-                                {roles[currentUser].permissions.includes('admin_panel') && 
-                                    <AppButton onClick={() => setView('admin')} variant="create" className="mb-2">Go to Admin Panel</AppButton>
-                                }
-                                <AppButton onClick={handleLogout} variant="logout">Logout</AppButton>
-                            </div>
-                        ) : (
-                            <div>
-                                <p className="text-lg mb-4">Please log in to access the system.</p>
-                                <AppButton onClick={() => setLoginModalOpen(true)} variant="login">Login</AppButton>
-                            </div>
-                        )}
-                    </div>
-                     {isLoginModalOpen && (
-                        <GeneralModal title="Login" onClose={() => setLoginModalOpen(false)}>
-                            <form onSubmit={e => { e.preventDefault(); handleLogin(e.target.password.value); }}>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-4 text-gray-200 mb-4"
-                                    placeholder="Enter password"
-                                    autoFocus
-                                />
-                                {loginError && <p className="text-red-500 text-sm mb-4">{loginError}</p>}
-                                <div className="flex justify-end gap-2">
-                                    <AppButton type="button" onClick={() => setLoginModalOpen(false)} variant="cancel">Cancel</AppButton>
-                                    <AppButton type="submit" variant="login">Login</AppButton>
-                                </div>
-                            </form>
-                        </GeneralModal>
-                    )}
-                    <Notification {...notification} />
-                </div>
-            );
-        };
-        
-        // --- Render the App ---
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-
-    </script>
 </body>
 </html>
