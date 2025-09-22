@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>IP Address List Manager</title>
+    <title>Address List Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -43,6 +43,12 @@
             scrollbar-width: thin;
             scrollbar-color: #4a5568 #2d3748;
         }
+        /* Disabled button styles */
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
     </style>
 </head>
 <body class="bg-primary text-text-primary font-sans">
@@ -52,7 +58,7 @@
         <header class="mb-6">
             <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary">
-                    IP Address List
+                    Address List Manager
                 </h1>
                 <div class="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-4">
                     <div class="relative w-full sm:w-64">
@@ -117,6 +123,18 @@
                 </div>
             </div>
         </main>
+        
+        <!-- Pagination -->
+        <footer id="pagination-container" class="hidden mt-6 flex justify-center items-center gap-4">
+            <button id="prev-page-button" class="py-2 px-4 bg-accent hover:bg-gray-600 text-text-primary font-semibold rounded-lg transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                Նախորդ
+            </button>
+            <span id="page-info" class="text-text-secondary font-medium"></span>
+            <button id="next-page-button" class="py-2 px-4 bg-accent hover:bg-gray-600 text-text-primary font-semibold rounded-lg transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                Հաջորդ
+            </button>
+        </footer>
+
     </div>
 
     <!-- Modals -->
@@ -222,19 +240,34 @@
         </div>
     </div>
 
+    <!-- Copy Toast Notification -->
+    <div id="copy-toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-highlight text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transform translate-y-4 transition-all duration-300 ease-in-out z-50 pointer-events-none">
+        Պատճենվել է!
+    </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // State
     let ipRecords = [];
     let editingRecordId = null;
     let deletingRecordId = null;
+    let copyToastTimeout = null;
+    let currentPage = 1;
+    const recordsPerPage = 10;
 
     // DOM Elements
     const tableBody = document.getElementById('ip-table-body');
     const noRecordsMessage = document.getElementById('no-records-message');
     const tableContainer = document.getElementById('table-container');
     const searchInput = document.getElementById('search-input');
+    const copyToast = document.getElementById('copy-toast');
     
+    // Pagination Elements
+    const paginationContainer = document.getElementById('pagination-container');
+    const prevPageButton = document.getElementById('prev-page-button');
+    const nextPageButton = document.getElementById('next-page-button');
+    const pageInfo = document.getElementById('page-info');
+
     // Modals
     const formModal = document.getElementById('form-modal');
     const confirmationModal = document.getElementById('confirmation-modal');
@@ -269,11 +302,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const savedRecords = localStorage.getItem('ipRecords');
             let records = savedRecords ? JSON.parse(savedRecords) : [];
             
-            // Data migration: ensure all records have a unique ID
             let madeChanges = false;
             records.forEach(record => {
                 if (!record.id) {
-                    // Generate a cryptographically secure unique ID for old records
                     record.id = crypto.randomUUID(); 
                     madeChanges = true;
                 }
@@ -297,17 +328,28 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Failed to save IP records to localStorage", error);
         }
     };
+    
+    // --- Pagination ---
+    const renderPagination = (totalRecords) => {
+        const totalPages = Math.ceil(totalRecords / recordsPerPage);
+
+        if (totalPages <= 1) {
+            paginationContainer.classList.add('hidden');
+            return;
+        }
+
+        paginationContainer.classList.remove('hidden');
+        pageInfo.textContent = `Էջ ${currentPage} / ${totalPages}`;
+        prevPageButton.disabled = currentPage === 1;
+        nextPageButton.disabled = currentPage === totalPages;
+    };
+
 
     // --- Rendering ---
     const renderTable = () => {
-        // Manage button states
         const hasRecords = ipRecords.length > 0;
         deleteAllButton.disabled = !hasRecords;
         exportButton.disabled = !hasRecords;
-        deleteAllButton.classList.toggle('opacity-50', !hasRecords);
-        deleteAllButton.classList.toggle('cursor-not-allowed', !hasRecords);
-        exportButton.classList.toggle('opacity-50', !hasRecords);
-        exportButton.classList.toggle('cursor-not-allowed', !hasRecords);
 
         const searchTerm = searchInput.value.toLowerCase();
         const filteredRecords = ipRecords.filter(record =>
@@ -323,15 +365,28 @@ document.addEventListener('DOMContentLoaded', () => {
             ].some(value => value && String(value).toLowerCase().includes(searchTerm))
         );
 
+        const totalRecords = filteredRecords.length;
+        const totalPages = Math.ceil(totalRecords / recordsPerPage);
+        
+        // Adjust current page if it's out of bounds after filtering/deletion
+        if (currentPage > totalPages) {
+            currentPage = totalPages || 1;
+        }
+
+        const startIndex = (currentPage - 1) * recordsPerPage;
+        const endIndex = startIndex + recordsPerPage;
+        const paginatedRecords = filteredRecords.slice(startIndex, endIndex);
+
         tableBody.innerHTML = '';
 
-        if (filteredRecords.length === 0) {
+        if (totalRecords === 0) {
             noRecordsMessage.classList.remove('hidden');
             tableContainer.classList.add('hidden');
         } else {
             noRecordsMessage.classList.add('hidden');
             tableContainer.classList.remove('hidden');
-            filteredRecords.forEach((record, index) => {
+            paginatedRecords.forEach((record, index) => {
+                const globalIndex = startIndex + index;
                 const row = document.createElement('tr');
                 row.className = 'border-b border-accent hover:bg-accent/50 transition-colors duration-200';
                 row.dataset.id = record.id;
@@ -356,11 +411,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     copyButton.onclick = () => {
                         navigator.clipboard.writeText(text).then(() => {
-                            const copiedSpan = document.createElement('span');
-                            copiedSpan.className = 'absolute -top-6 left-0 text-xs bg-highlight text-white rounded px-2 py-1 transition-opacity duration-300';
-                            copiedSpan.textContent = 'Պատճենվել է!';
-                            container.appendChild(copiedSpan);
-                            setTimeout(() => copiedSpan.remove(), 2000);
+                            if (copyToastTimeout) {
+                                clearTimeout(copyToastTimeout);
+                            }
+                            copyToast.classList.remove('opacity-0', 'translate-y-4');
+                            copyToast.classList.add('opacity-100', 'translate-y-0');
+                            copyToastTimeout = setTimeout(() => {
+                                copyToast.classList.remove('opacity-100', 'translate-y-0');
+                                copyToast.classList.add('opacity-0', 'translate-y-4');
+                                copyToastTimeout = null;
+                            }, 2000);
                         }).catch(err => console.error("Failed to copy text: ", err));
                     };
 
@@ -370,7 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return cell;
                 };
                 
-                row.innerHTML = `<td class="px-5 py-4 text-sm">${index + 1}</td>`;
+                row.innerHTML = `<td class="px-5 py-4 text-sm">${globalIndex + 1}</td>`;
                 row.appendChild(createCopyableCell(record.department));
                 row.appendChild(createCopyableCell(record.vlan));
                 row.appendChild(createCopyableCell(record.subnetMask));
@@ -403,6 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tableBody.appendChild(row);
             });
         }
+        renderPagination(totalRecords);
     };
 
     // --- Modal Control ---
@@ -428,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             formModalTitle.textContent = 'Խմբագրել IP գրառումը';
-            formSubmitButton.textContent = 'Պահպանել';
+            formSubmitButton.textContent = 'Թարմացնել';
             openModal(formModal);
         }
     };
@@ -444,7 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             formModalTitle.textContent = 'Կրկնօրինակել IP գրառումը';
-            formSubmitButton.textContent = 'Կատարել';
+            formSubmitButton.textContent = 'Կրկնօրինակել';
             openModal(formModal);
         }
     };
@@ -470,6 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleDeleteAllConfirm = () => {
         ipRecords = [];
+        currentPage = 1;
         saveRecords();
         renderTable();
         closeModal(deleteAllConfirmationModal);
@@ -496,6 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             const newRecord = { id: crypto.randomUUID(), ...recordData };
             ipRecords.unshift(newRecord); // Add to the beginning
+            currentPage = 1; // Go to first page to see the new record
         }
         
         editingRecordId = null;
@@ -635,9 +698,32 @@ document.addEventListener('DOMContentLoaded', () => {
     exportButton.addEventListener('click', handleExportClick);
     importButton.addEventListener('click', handleImportClick);
     importFileInput.addEventListener('change', handleFileSelect);
-    searchInput.addEventListener('input', renderTable);
+    
+    searchInput.addEventListener('input', () => {
+        currentPage = 1;
+        renderTable();
+    });
+    
     ipForm.addEventListener('submit', handleFormSubmit);
 
+    // Pagination Listeners
+    prevPageButton.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+        }
+    });
+
+    nextPageButton.addEventListener('click', () => {
+        const totalRecords = ipRecords.filter(r => JSON.stringify(r).toLowerCase().includes(searchInput.value.toLowerCase())).length;
+        const totalPages = Math.ceil(totalRecords / recordsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderTable();
+        }
+    });
+
+    // Modal Close Listeners
     formCancelButton.addEventListener('click', () => closeModal(formModal));
     confirmCancelButton.addEventListener('click', () => closeModal(confirmationModal));
     confirmDeleteButton.addEventListener('click', handleDeleteConfirm);
@@ -666,5 +752,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTable();
 });
 </script>
+
 </body>
 </html>
