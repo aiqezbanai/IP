@@ -70,6 +70,19 @@
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                         <span>Ավելացնել</span>
                     </button>
+                    <button id="import-button" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l-3.75 3.75M12 9.75l3.75 3.75M3 17.25V6.75A2.25 2.25 0 015.25 4.5h13.5A2.25 2.25 0 0121 6.75v10.5A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25z"></path></svg>
+                        <span>IMPORT</span>
+                    </button>
+                    <input type="file" id="import-file-input" class="hidden" accept=".csv, text/csv">
+                    <button id="export-button" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path></svg>
+                        <span>EXPORT</span>
+                    </button>
+                    <button id="delete-all-button" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.124-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.077-2.09.921-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path></svg>
+                        <span>Ջնջել բոլորը</span>
+                    </button>
                 </div>
             </div>
         </header>
@@ -169,6 +182,20 @@
         </div>
     </div>
 
+    <!-- Delete All Confirmation Modal -->
+    <div id="delete-all-confirmation-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
+        <div class="bg-secondary rounded-lg shadow-xl w-full max-w-sm">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-4 text-text-primary">Հաստատում</h2>
+                <p class="text-text-secondary mb-6">Վստա՞հ եք, որ ցանկանում եք ջնջել բոլոր գրառումները: Այս գործողությունը անդառնալի է։</p>
+                <div class="flex justify-end gap-4">
+                    <button id="confirm-all-cancel-button" class="py-2 px-4 bg-accent hover:bg-gray-600 text-text-primary font-semibold rounded-lg transition-colors duration-300">Չեղարկել</button>
+                    <button id="confirm-all-delete-button" class="py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors duration-300">Այո, ջնջել</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Validation Error Modal -->
     <div id="validation-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
         <div class="bg-secondary rounded-lg shadow-xl w-full max-w-sm">
@@ -177,6 +204,19 @@
                 <p class="text-text-secondary mb-6">Խնդրում ենք լրացնել բոլոր դատարկ դաշտերը:</p>
                 <div class="flex justify-center gap-4">
                     <button id="validation-close-button" class="py-2 px-6 bg-highlight hover:bg-teal-500 text-white font-semibold rounded-lg transition-colors duration-300">Փակել</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Success Modal -->
+    <div id="import-success-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
+        <div class="bg-secondary rounded-lg shadow-xl w-full max-w-sm">
+            <div class="p-6 text-center">
+                <h2 class="text-xl font-bold mb-4 text-text-primary">Ներմուծումը հաջողվեց</h2>
+                <p id="import-success-message" class="text-text-secondary mb-6"></p>
+                <div class="flex justify-center gap-4">
+                    <button id="import-success-close-button" class="py-2 px-6 bg-highlight hover:bg-teal-500 text-white font-semibold rounded-lg transition-colors duration-300">Փակել</button>
                 </div>
             </div>
         </div>
@@ -199,24 +239,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const formModal = document.getElementById('form-modal');
     const confirmationModal = document.getElementById('confirmation-modal');
     const validationModal = document.getElementById('validation-modal');
+    const deleteAllConfirmationModal = document.getElementById('delete-all-confirmation-modal');
+    const importSuccessModal = document.getElementById('import-success-modal');
+    const importSuccessMessage = document.getElementById('import-success-message');
 
     // Form Elements
     const ipForm = document.getElementById('ip-form');
     const formModalTitle = document.getElementById('form-modal-title');
     const formSubmitButton = document.getElementById('form-submit-button');
+    const importFileInput = document.getElementById('import-file-input');
 
     // Buttons
     const addButton = document.getElementById('add-button');
+    const deleteAllButton = document.getElementById('delete-all-button');
+    const importButton = document.getElementById('import-button');
+    const exportButton = document.getElementById('export-button');
     const formCancelButton = document.getElementById('form-cancel-button');
     const confirmCancelButton = document.getElementById('confirm-cancel-button');
     const confirmDeleteButton = document.getElementById('confirm-delete-button');
     const validationCloseButton = document.getElementById('validation-close-button');
+    const confirmAllCancelButton = document.getElementById('confirm-all-cancel-button');
+    const confirmAllDeleteButton = document.getElementById('confirm-all-delete-button');
+    const importSuccessCloseButton = document.getElementById('import-success-close-button');
+
 
     // --- Data Persistence ---
     const loadRecords = () => {
         try {
             const savedRecords = localStorage.getItem('ipRecords');
-            ipRecords = savedRecords ? JSON.parse(savedRecords) : [];
+            let records = savedRecords ? JSON.parse(savedRecords) : [];
+            
+            // Data migration: ensure all records have a unique ID
+            let madeChanges = false;
+            records.forEach(record => {
+                if (!record.id) {
+                    // Generate a cryptographically secure unique ID for old records
+                    record.id = crypto.randomUUID(); 
+                    madeChanges = true;
+                }
+            });
+
+            ipRecords = records;
+
+            if (madeChanges) {
+                saveRecords();
+            }
         } catch (error) {
             console.error("Failed to parse IP records from localStorage", error);
             ipRecords = [];
@@ -233,11 +300,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Rendering ---
     const renderTable = () => {
+        // Manage button states
+        const hasRecords = ipRecords.length > 0;
+        deleteAllButton.disabled = !hasRecords;
+        exportButton.disabled = !hasRecords;
+        deleteAllButton.classList.toggle('opacity-50', !hasRecords);
+        deleteAllButton.classList.toggle('cursor-not-allowed', !hasRecords);
+        exportButton.classList.toggle('opacity-50', !hasRecords);
+        exportButton.classList.toggle('cursor-not-allowed', !hasRecords);
+
         const searchTerm = searchInput.value.toLowerCase();
         const filteredRecords = ipRecords.filter(record =>
-            Object.values(record).some(value =>
-                String(value).toLowerCase().includes(searchTerm)
-            )
+            [
+                record.department,
+                record.vlan,
+                record.subnetMask,
+                record.defaultGateway,
+                record.usableIPs,
+                record.networkAddress,
+                record.broadcastAddress,
+                record.notes
+            ].some(value => value && String(value).toLowerCase().includes(searchTerm))
         );
 
         tableBody.innerHTML = '';
@@ -269,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     copyButton.className = 'opacity-0 group-hover:opacity-100 text-text-secondary hover:text-highlight transition-all duration-200';
                     copyButton.title = 'Պատճենել';
                     copyButton.disabled = !text;
-                    copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>`;
+                    copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002 2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>`;
                     
                     copyButton.onclick = () => {
                         navigator.clipboard.writeText(text).then(() => {
@@ -379,6 +462,19 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModal(confirmationModal);
     };
 
+    const handleDeleteAllRequest = () => {
+        if (ipRecords.length > 0) {
+            openModal(deleteAllConfirmationModal);
+        }
+    };
+
+    const handleDeleteAllConfirm = () => {
+        ipRecords = [];
+        saveRecords();
+        renderTable();
+        closeModal(deleteAllConfirmationModal);
+    };
+
     const handleFormSubmit = (e) => {
         e.preventDefault();
         const formData = new FormData(ipForm);
@@ -398,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ipRecords[index] = { ...ipRecords[index], ...recordData };
             }
         } else {
-            const newRecord = { id: Date.now().toString(), ...recordData };
+            const newRecord = { id: crypto.randomUUID(), ...recordData };
             ipRecords.unshift(newRecord); // Add to the beginning
         }
         
@@ -408,8 +504,137 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModal(formModal);
     };
 
+    const escapeCSV = (str) => {
+        if (str === null || str === undefined) {
+            return '';
+        }
+        let result = String(str);
+        if (result.includes(',') || result.includes('"') || result.includes('\n')) {
+            result = result.replace(/"/g, '""'); // Escape double quotes
+            result = `"${result}"`; // Enclose in double quotes
+        }
+        return result;
+    };
+
+    const handleExportClick = () => {
+        if (ipRecords.length === 0) {
+            alert('No records to export.');
+            return;
+        }
+        const headers = ['No.', 'Department', 'Vlan', 'Subnet Mask', 'Default Gateway', 'Usable IP addresses', 'Network Address', 'Broadcast Address', 'Նշումներ'];
+        const rows = ipRecords.map((record, index) => [
+            index + 1, record.department, record.vlan, record.subnetMask, record.defaultGateway,
+            record.usableIPs, record.networkAddress, record.broadcastAddress, record.notes
+        ].map(escapeCSV));
+
+        const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        const date = new Date().toISOString().slice(0, 10);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `ip_records_${date}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleImportClick = () => {
+        importFileInput.click();
+    };
+
+    const handleFileSelect = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            let csvText = e.target.result;
+            try {
+                if (csvText.startsWith('\uFEFF')) { // Handle BOM
+                    csvText = csvText.substring(1);
+                }
+                const lines = csvText.trim().split(/\r?\n/);
+                if (lines.length < 2) {
+                    alert('File is empty or contains only a header.');
+                    return;
+                }
+                
+                const headerLine = lines.shift().trim();
+                const fileHeaders = [];
+                const headerRegex = /(?:"([^"]*(?:""[^"]*)*)"|([^,]*))(?:,|$)/g;
+                let headerMatch;
+                while (headerMatch = headerRegex.exec(headerLine)) {
+                    fileHeaders.push(headerMatch[1] ? headerMatch[1].replace(/""/g, '"') : headerMatch[2]);
+                    if (!headerMatch[0].endsWith(',')) break;
+                }
+
+                const keyMap = {
+                    'Department': 'department', 'Vlan': 'vlan', 'Subnet Mask': 'subnetMask',
+                    'Default Gateway': 'defaultGateway', 'Usable IP addresses': 'usableIPs',
+                    'Network Address': 'networkAddress', 'Broadcast Address': 'broadcastAddress', 'Նշումներ': 'notes'
+                };
+                
+                const headerMapping = fileHeaders.map(h => keyMap[h.trim()]);
+
+                const newRecords = lines.map(line => {
+                    if (!line.trim()) return null;
+                    
+                    const values = [];
+                    const valueRegex = /(?:"([^"]*(?:""[^"]*)*)"|([^,]*))(?:,|$)/g;
+                    let valueMatch;
+                    while (valueMatch = valueRegex.exec(line)) {
+                         values.push(valueMatch[1] ? valueMatch[1].replace(/""/g, '"') : valueMatch[2]);
+                         if (!valueMatch[0].endsWith(',')) break;
+                    }
+                    
+                    const record = {};
+                    let hasData = false;
+                    headerMapping.forEach((key, index) => {
+                        if (key && values[index] !== undefined && values[index].trim() !== '') {
+                            record[key] = values[index];
+                            hasData = true;
+                        }
+                    });
+                    
+                    if (hasData) {
+                        record.id = crypto.randomUUID();
+                        return record;
+                    }
+                    return null;
+                }).filter(Boolean);
+
+                if (newRecords.length > 0) {
+                    ipRecords.push(...newRecords);
+                    saveRecords();
+                    renderTable();
+                    importSuccessMessage.textContent = `Հաջողությամբ ներմուծվել է ${newRecords.length} գրառում։`;
+                    openModal(importSuccessModal);
+                } else {
+                    alert('No valid records found in the file to import. Please check column headers.');
+                }
+            } catch (error) {
+                console.error("Failed to parse CSV file:", error);
+                alert("Error parsing CSV file. Please check the file format and try again.");
+            } finally {
+                event.target.value = null; // Reset file input
+            }
+        };
+        reader.onerror = () => {
+            alert("Error reading file.");
+            event.target.value = null;
+        };
+        reader.readAsText(file);
+    };
+
     // --- Event Listeners ---
     addButton.addEventListener('click', handleAddClick);
+    deleteAllButton.addEventListener('click', handleDeleteAllRequest);
+    exportButton.addEventListener('click', handleExportClick);
+    importButton.addEventListener('click', handleImportClick);
+    importFileInput.addEventListener('change', handleFileSelect);
     searchInput.addEventListener('input', renderTable);
     ipForm.addEventListener('submit', handleFormSubmit);
 
@@ -417,6 +642,9 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmCancelButton.addEventListener('click', () => closeModal(confirmationModal));
     confirmDeleteButton.addEventListener('click', handleDeleteConfirm);
     validationCloseButton.addEventListener('click', () => closeModal(validationModal));
+    importSuccessCloseButton.addEventListener('click', () => closeModal(importSuccessModal));
+    confirmAllCancelButton.addEventListener('click', () => closeModal(deleteAllConfirmationModal));
+    confirmAllDeleteButton.addEventListener('click', handleDeleteAllConfirm);
 
     // Delegate events for action buttons in the table
     tableBody.addEventListener('click', (e) => {
@@ -425,9 +653,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const action = button.dataset.action;
             const row = button.closest('tr');
             const id = row.dataset.id;
-            if (action === 'edit') handleEditClick(id);
-            if (action === 'delete') handleDeleteRequest(id);
-            if (action === 'duplicate') handleDuplicateClick(id);
+            if (id) {
+                if (action === 'edit') handleEditClick(id);
+                if (action === 'delete') handleDeleteRequest(id);
+                if (action === 'duplicate') handleDuplicateClick(id);
+            }
         }
     });
 
@@ -436,6 +666,5 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTable();
 });
 </script>
-
 </body>
 </html>
