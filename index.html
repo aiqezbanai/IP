@@ -90,7 +90,7 @@
             <!-- Header -->
             <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-8 text-white text-center">
                 <h2 class="text-3xl font-bold mb-2">Ունիվերսալ Փոխակերպիչ</h2>
-                <p class="text-blue-100 opacity-90">Իրական ժամանակի մշակում՝ առանց սերվերի սահմանափակումների</p>
+                <p class="text-blue-100 opacity-90">Իրական ժամանակի մշակում՝ առանց սահմանափակումների</p>
             </div>
 
             <div class="p-8">
@@ -99,7 +99,7 @@
                     <input type="file" id="fileInput" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFileSelect(event)">
                     <div class="transition-transform group-hover:scale-105 duration-300">
                         <i class="fa-solid fa-cloud-arrow-up text-6xl text-blue-500 mb-4 drop-shadow-sm"></i>
-                        <p class="text-xl font-semibold text-slate-700">Ընտրեք ֆայլը համակարգչից</p>
+                        <p class="text-xl font-semibold text-slate-700">Ընտրեք ֆայլը</p>
                         <p class="text-sm text-slate-400 mt-2">PDF, XLSX, DOCX</p>
                     </div>
                 </div>
@@ -122,7 +122,7 @@
                                 <p id="realFileSize" class="font-semibold text-slate-800">-</p>
                             </div>
                             <div>
-                                <p class="text-slate-400 text-xs">Իրական Էջեր</p>
+                                <p class="text-slate-400 text-xs">Էջերի քանակ</p>
                                 <p id="realPageCount" class="font-semibold text-slate-800">-</p>
                             </div>
                             <div>
@@ -144,7 +144,7 @@
                             <label class="block text-sm font-medium text-slate-700 mb-2">Ընտրեք փոխակերպման ռեժիմը</label>
                             <div class="relative">
                                 <select id="convertFormat" class="appearance-none w-full p-4 pl-5 bg-white border border-slate-300 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition">
-                                    <option value="" disabled selected>-- Ընտրել գործողությունը --</option>
+                                    <option value="" disabled selected> « Ընտրել գործողությունը »</option>
                                     <!-- Dynamic Options injected via JS -->
                                 </select>
                                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
@@ -164,7 +164,7 @@
                 <div id="processingState" class="hidden mt-8 text-center py-8">
                     <div class="loader mb-4 border-t-blue-600 border-slate-200"></div>
                     <h3 class="text-lg font-semibold text-slate-700">Կատարվում է մշակում...</h3>
-                    <p id="progressText" class="text-sm text-slate-500 mt-2">Վերլուծվում են տվյալները (Client-Side)</p>
+                    <p id="progressText" class="text-sm text-slate-500 mt-2">Վերլուծվում են տվյալները</p>
                     <div class="w-full bg-gray-200 rounded-full h-2.5 mt-4 max-w-md mx-auto overflow-hidden">
                         <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
                     </div>
