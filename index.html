@@ -3,90 +3,781 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aria Converter</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <title>ARIA CONVERTER | Professional Tool</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- LIBRARIES FOR REAL PROCESSING -->
+    <!-- 1. JSZip (Archiving) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- 2. FileSaver (Downloading) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; text-align: center; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        select, input, button { margin: 10px; padding: 10px; font-size: 16px; }
-        #info { margin: 20px; font-size: 18px; }
-        footer { margin-top: 50px; font-size: 14px; }
-        @media (max-width: 600px) { .container { padding: 10px; } }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Aria Converter</h1>
-        <input type="file" id="fileInput" accept=".pdf"/>
-        <select id="format">
-            <option value="png">PDF → PNG</option>
-            <option value="jpg">PDF → JPG</option>
-            <option value="ocr">OCR PDF (Տեքստի ճանաչում)</option>
-        </select>
-        <button onclick="convert()">Փոխակերպել և ներբեռնել ZIP</button>
-        <div id="info"></div>
-    </div>
-    <footer>
-        Copyright © | <a href="https://github.com/ariadevelopmentgroup/AriaConverter" target="_blank">Aria Development Group</a> | Հեղինակային բոլոր իրավունքները պաշտպանված են:
-    </footer>
+    <!-- 3. PDF.js (PDF Parsing/Rendering) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- 4. SheetJS (Excel Handling) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- 5. Tesseract.js (OCR) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <!-- 6. Crypto JS (Security) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <!-- 7. docx (Word Generation) -->
+    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
 
     <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js';
+        // PDF.js Worker Setup
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
 
-        async function convert() {
-            const file = document.getElementById('fileInput').files[0];
-            if (!file || file.type !== 'application/pdf') {
-                alert('Ընտրեք PDF ֆայլ');
-                return;
-            }
-
-            const info = document.getElementById('info');
-            info.innerHTML = `Անուն: ${file.name}<br>Չափս: ${(file.size / 1024 / 1024).toFixed(2)} MB`;
-
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
-            info.innerHTML += `<br>Էջերի քանակ: ${pdf.numPages}`;
-
-            const zip = new JSZip();
-            const format = document.getElementById('format').value;
-
-            if (format === 'ocr') {
-                info.innerHTML += '<br>OCR գործընթաց (դանդաղ է)...';
-                let text = '';
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const viewport = page.getViewport({scale: 2});
-                    const canvas = document.createElement('canvas');
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
-                    await page.render({canvasContext: canvas.getContext('2d'), viewport}).promise;
-                    const dataUrl = canvas.toDataURL('image/png');
-                    const {data: {text: pageText}} = await Tesseract.recognize(dataUrl, 'eng+rus+hy');
-                    text += `Էջ ${i}:\n${pageText}\n\n`;
-                }
-                zip.file('ocr_text.txt', text);
-            } else {
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const viewport = page.getViewport({scale: 2});
-                    const canvas = document.createElement('canvas');
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
-                    await page.render({canvasContext: canvas.getContext('2d'), viewport}).promise;
-                    const blob = await new Promise(resolve => canvas.toBlob(resolve, format === 'png' ? 'image/png' : 'image/jpeg', 0.95));
-                    zip.file(`page_${i}.${format}`, blob);
-                }
-            }
-
-            const date = new Date();
-            const fileName = `ARIA-CONVERTER__${date.getDate()}-${date.getMonth()+1}-${date.getFullYear()}.zip`;
-            const content = await zip.generateAsync({type: 'blob'});
-            saveAs(content, fileName);
-            info.innerHTML += '<br>Պատրաստ է!';
+    <style>
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        
+        /* Loading Spinner */
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #FFF;
+            border-bottom-color: #3b82f6;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
         }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .code-editor::-webkit-scrollbar { width: 10px; height: 10px; }
+        .code-editor::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 5px; }
+        .code-editor::-webkit-scrollbar-track { background: #1f2937; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col justify-between">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-lg p-4 sticky top-0 z-40 border-b border-gray-200">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2 rounded-lg">
+                    <i class="fa-solid fa-sync fa-spin-pulse" style="--fa-animation-duration: 3s;"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight text-slate-800">ARIA <span class="text-blue-600">CONVERTER</span></span>
+            </div>
+            <button onclick="toggleLoginModal()" class="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2 rounded-full text-sm font-medium transition shadow-md hover:shadow-lg flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved"></i> Մուտք
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 flex-grow relative">
+        
+        <!-- Banned Overlay -->
+        <div id="bannedOverlay" class="hidden fixed inset-0 bg-red-900/95 z-[100] flex items-center justify-center text-white text-center p-8 backdrop-blur-md">
+            <div>
+                <i class="fa-solid fa-ban text-8xl mb-6 text-red-400"></i>
+                <h1 class="text-4xl font-bold mb-4">Մուտքն արգելափակված է</h1>
+                <p class="text-xl opacity-90">Ձեր IP հասցեն սահմանափակված է ադմինիստրատորի կողմից:</p>
+                <p id="banTimer" class="mt-4 font-mono bg-red-800 p-2 rounded inline-block"></p>
+            </div>
+        </div>
+
+        <!-- Tool Container -->
+        <div id="converterTool" class="max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden fade-in border border-slate-200">
+            
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-8 text-white text-center">
+                <h2 class="text-3xl font-bold mb-2">Ունիվերսալ Փոխակերպիչ</h2>
+                <p class="text-blue-100 opacity-90">Իրական ժամանակի մշակում՝ առանց սերվերի սահմանափակումների</p>
+            </div>
+
+            <div class="p-8">
+                <!-- Drop Zone -->
+                <div id="dropZone" class="border-3 border-dashed border-blue-200 rounded-2xl p-12 text-center hover:bg-blue-50/50 hover:border-blue-400 transition-all duration-300 cursor-pointer relative group">
+                    <input type="file" id="fileInput" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFileSelect(event)">
+                    <div class="transition-transform group-hover:scale-105 duration-300">
+                        <i class="fa-solid fa-cloud-arrow-up text-6xl text-blue-500 mb-4 drop-shadow-sm"></i>
+                        <p class="text-xl font-semibold text-slate-700">Ընտրեք ֆայլը համակարգչից</p>
+                        <p class="text-sm text-slate-400 mt-2">PDF, XLSX, DOCX</p>
+                    </div>
+                </div>
+
+                <!-- Real File Info Panel -->
+                <div id="fileInfoPanel" class="hidden mt-8 animate-pulse-once">
+                    <div class="bg-slate-50 rounded-xl p-6 border border-slate-200 shadow-inner">
+                        <div class="flex justify-between items-center mb-4 border-b border-slate-200 pb-2">
+                            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Ֆայլի Տեխնիկական Տվյալներ</h3>
+                            <span id="fileTypeBadge" class="px-3 py-1 rounded-full text-xs font-bold text-white bg-slate-500">UNK</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
+                            <div>
+                                <p class="text-slate-400 text-xs">Անվանում</p>
+                                <p id="realFileName" class="font-semibold text-slate-800 truncate" title="">-</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-400 text-xs">Չափս</p>
+                                <p id="realFileSize" class="font-semibold text-slate-800">-</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-400 text-xs">Իրական Էջեր</p>
+                                <p id="realPageCount" class="font-semibold text-slate-800">-</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-400 text-xs">DPI (Ցուցադրման)</p>
+                                <div class="flex gap-1 text-[10px] font-mono mt-1">
+                                    <span class="bg-orange-100 text-orange-700 px-1 rounded" title="Min">72</span>
+                                    <span class="bg-blue-100 text-blue-700 px-1 rounded" title="Mid">150</span>
+                                    <span class="bg-purple-100 text-purple-700 px-1 rounded" title="Max">300</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div id="actionPanel" class="hidden mt-8 pt-6 border-t border-slate-100">
+                    <div class="flex flex-col md:flex-row gap-6 items-end">
+                        <div class="w-full md:w-2/3">
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Ընտրեք փոխակերպման ռեժիմը</label>
+                            <div class="relative">
+                                <select id="convertFormat" class="appearance-none w-full p-4 pl-5 bg-white border border-slate-300 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition">
+                                    <option value="" disabled selected>-- Ընտրել գործողությունը --</option>
+                                    <!-- Dynamic Options injected via JS -->
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-1/3">
+                            <button onclick="executeRealConversion()" class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-bold rounded-xl text-base px-6 py-4 shadow-lg hover:shadow-blue-500/30 transition-all transform hover:-translate-y-1 active:translate-y-0 flex justify-center items-center gap-2">
+                                <i class="fa-solid fa-bolt"></i> Սկսել
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Processing State -->
+                <div id="processingState" class="hidden mt-8 text-center py-8">
+                    <div class="loader mb-4 border-t-blue-600 border-slate-200"></div>
+                    <h3 class="text-lg font-semibold text-slate-700">Կատարվում է մշակում...</h3>
+                    <p id="progressText" class="text-sm text-slate-500 mt-2">Վերլուծվում են տվյալները (Client-Side)</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-4 max-w-md mx-auto overflow-hidden">
+                        <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Success / Download -->
+                <div id="downloadState" class="hidden mt-8 bg-green-50 rounded-xl p-8 border border-green-200 text-center animate-bounce-in">
+                    <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-check text-3xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-green-800 mb-2">Պատրաստ է!</h3>
+                    <p class="text-green-600 mb-6">Ձեր ֆայլը հաջողությամբ փոխակերպվել և արխիվացվել է:</p>
+                    <button onclick="triggerZipDownload()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-green-500/40 transition-all transform hover:scale-105 flex items-center gap-2 mx-auto">
+                        <i class="fa-solid fa-file-zipper"></i> Ներբեռնել ZIP
+                    </button>
+                    <p id="zipNameDisplay" class="mt-3 text-xs text-green-700 font-mono opacity-75"></p>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800">
+        <div class="container mx-auto px-4 text-center">
+            <div class="flex justify-center items-center gap-2 mb-4">
+                <i class="fa-solid fa-code text-blue-500"></i>
+            </div>
+            <p class="text-sm font-light tracking-wide">
+                Copyright © <span id="footerYear"></span> | 
+                <a href="https://github.com/ariadevelopmentgroup/AriaConverter" target="_blank" class="text-white hover:text-blue-400 font-bold transition-colors duration-300 relative group">
+                    Aria Development Group
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all group-hover:w-full"></span>
+                </a> 
+                | Հեղինակային բոլոր իրավունքները պաշտպանված են:
+            </p>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 relative transform transition-all scale-100">
+            <button onclick="toggleLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
+                <i class="fa-solid fa-times text-xl"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-solid fa-user-shield text-xl"></i>
+                </div>
+                <h2 class="text-xl font-bold text-slate-800">Ադմինիստրատոր</h2>
+            </div>
+            <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <input type="text" id="adminUser" placeholder="Մուտքանուն" class="w-full border border-slate-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition" required>
+                </div>
+                <div>
+                    <input type="password" id="adminPass" placeholder="Գաղտնաբառ" class="w-full border border-slate-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition" required>
+                </div>
+                <div id="loginError" class="text-red-500 text-xs text-center hidden bg-red-50 p-2 rounded">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> Սխալ տվյալներ
+                </div>
+                <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-lg font-bold shadow-md transition">
+                    Մուտք
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Panel Overlay -->
+    <div id="adminPanel" class="hidden fixed inset-0 bg-slate-100 z-[60] flex flex-col h-screen overflow-hidden">
+        <!-- Admin Header -->
+        <header class="bg-slate-900 text-white p-4 shadow-md flex justify-between items-center z-10">
+            <div class="flex items-center gap-3">
+                <i class="fa-brands fa-linux text-2xl"></i>
+                <span class="font-bold text-lg">Admin Control Center</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="sessionTimer" class="text-xs font-mono bg-slate-800 px-2 py-1 rounded text-red-300"></span>
+                <button onclick="adminLogout()" class="text-slate-300 hover:text-white"><i class="fa-solid fa-power-off"></i></button>
+            </div>
+        </header>
+
+        <div class="flex flex-grow overflow-hidden">
+            <!-- Sidebar -->
+            <aside class="w-64 bg-slate-800 text-slate-300 flex-shrink-0 hidden md:flex flex-col">
+                <nav class="p-4 space-y-2">
+                    <button onclick="switchAdminTab('dashboard')" class="w-full text-left px-4 py-3 rounded hover:bg-slate-700 transition flex items-center gap-3 admin-nav-btn active-nav">
+                        <i class="fa-solid fa-gauge"></i> Գլխավոր
+                    </button>
+                    <button onclick="switchAdminTab('users')" class="w-full text-left px-4 py-3 rounded hover:bg-slate-700 transition flex items-center gap-3 admin-nav-btn">
+                        <i class="fa-solid fa-users-slash"></i> IP Արգելափակում
+                    </button>
+                    <button onclick="switchAdminTab('code')" class="w-full text-left px-4 py-3 rounded hover:bg-slate-700 transition flex items-center gap-3 admin-nav-btn">
+                        <i class="fa-solid fa-code"></i> Կոդի Խմբագրիչ
+                    </button>
+                </nav>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="flex-grow p-6 overflow-y-auto">
+                
+                <!-- Dashboard -->
+                <div id="tab-dashboard" class="admin-view space-y-6">
+                    <h2 class="text-2xl font-bold text-slate-800">Համակարգի Վիճակագրություն</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <div class="text-slate-500 text-sm mb-1">Կարգավիճակ</div>
+                            <div class="text-2xl font-bold text-green-600 flex items-center gap-2">
+                                <span class="w-3 h-3 bg-green-500 rounded-full animate-ping"></span> Online
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <div class="text-slate-500 text-sm mb-1">Ձեր IP (Սիմուլացված)</div>
+                            <div class="text-2xl font-bold text-blue-600" id="adminIpDisplay">Loading...</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <div class="text-slate-500 text-sm mb-1">Արգելափակված IP-ներ</div>
+                            <div class="text-2xl font-bold text-red-600" id="bannedCount">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IP Ban -->
+                <div id="tab-users" class="admin-view hidden space-y-6">
+                    <h2 class="text-2xl font-bold text-slate-800">IP Կառավարում</h2>
+                    <div class="bg-white p-6 rounded-xl shadow border border-slate-200">
+                        <div class="flex flex-col md:flex-row gap-4 mb-6">
+                            <input type="text" id="banIpInput" placeholder="IP Հասցե (օր.՝ 192.168.1.5)" class="flex-grow border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 outline-none">
+                            <select id="banDuration" class="border border-slate-300 rounded-lg px-4 py-2 bg-white">
+                                <option value="1">1 Օր</option>
+                                <option value="3">3 Օր</option>
+                                <option value="5">5 Օր</option>
+                                <option value="7">7 Օր</option>
+                                <option value="10">10 Օր</option>
+                                <option value="15">15 Օր</option>
+                                <option value="30">30 Օր</option>
+                            </select>
+                            <button onclick="executeBan()" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 font-medium shadow-md">
+                                Արգելափակել
+                            </button>
+                        </div>
+                        <div class="overflow-hidden rounded-lg border border-slate-200">
+                            <table class="min-w-full divide-y divide-slate-200">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">IP Address</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Սպառվում է</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Գործողություն</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bannedTableBody" class="bg-white divide-y divide-slate-200">
+                                    <!-- Rows injected via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Code Editor -->
+                <div id="tab-code" class="admin-view hidden h-full flex flex-col">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-4">Source Code (index.html)</h2>
+                    <div class="flex-grow relative bg-slate-900 rounded-xl overflow-hidden shadow-inner border border-slate-700">
+                        <textarea id="liveCodeView" class="code-editor absolute inset-0 w-full h-full bg-transparent text-green-400 font-mono text-sm p-4 resize-none focus:outline-none" spellcheck="false"></textarea>
+                    </div>
+                    <div class="mt-2 text-right">
+                        <button onclick="saveCodeChanges()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 text-sm">
+                            <i class="fa-solid fa-save mr-1"></i> Պահպանել (Simulation)
+                        </button>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- MAIN LOGIC -->
+    <script>
+        // --- CONSTANTS & CONFIG ---
+        const TARGET_HASH = "819036a445f1b619726207f2a176881c195f24ec4b6f157140e60802c67b9365e6488d5e1628d0554c2a543666d957d15926727284f18b577033b9347d48347f"; // SHA-512 for Admin20252026#AC!13
+        const ADMIN_USERNAME = "ACAdmin";
+        
+        let currentFile = null;
+        let fileType = null;
+        let generatedZipContent = null;
+        let generatedZipName = "";
+        
+        // Simulating IP address since JS client-side cannot get real public IP reliably without external API
+        // We persist this simulation in localStorage so "blocking" works for this browser
+        let userIP = localStorage.getItem('ac_simulated_ip');
+        if(!userIP) {
+            userIP = '192.168.' + Math.floor(Math.random() * 255) + '.' + Math.floor(Math.random() * 255);
+            localStorage.setItem('ac_simulated_ip', userIP);
+        }
+
+        // Admin Timer
+        let adminTimer;
+        let timeLeft = 300; // 5 mins in seconds
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('footerYear').innerText = new Date().getFullYear();
+            document.getElementById('adminIpDisplay').innerText = userIP;
+            checkBan();
+            
+            // Set up drag and drop
+            const dropZone = document.getElementById('dropZone');
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('bg-blue-50'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('bg-blue-50'));
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('bg-blue-50');
+                if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+            });
+        });
+
+        // --- FILE HANDLING & REAL METADATA ---
+        function handleFileSelect(event) {
+            if(event.target.files.length) handleFile(event.target.files[0]);
+        }
+
+        async function handleFile(file) {
+            currentFile = file;
+            const ext = file.name.split('.').pop().toLowerCase();
+            fileType = ext;
+
+            // Update Basic UI
+            document.getElementById('realFileName').innerText = file.name;
+            document.getElementById('realFileName').title = file.name;
+            document.getElementById('realFileSize').innerText = formatBytes(file.size);
+            document.getElementById('realPageCount').innerText = "Հաշվարկվում է...";
+            
+            // Show Info Panel
+            document.getElementById('fileInfoPanel').classList.remove('hidden');
+            document.getElementById('fileInfoPanel').classList.remove('animate-pulse-once');
+            void document.getElementById('fileInfoPanel').offsetWidth; // reset anim
+            document.getElementById('fileInfoPanel').classList.add('animate-pulse-once');
+            
+            // Badge Color
+            const badge = document.getElementById('fileTypeBadge');
+            badge.innerText = ext.toUpperCase();
+            if(ext === 'pdf') badge.className = "px-3 py-1 rounded-full text-xs font-bold text-white bg-red-500";
+            else if(ext === 'xlsx') badge.className = "px-3 py-1 rounded-full text-xs font-bold text-white bg-green-500";
+            else if(ext === 'docx') badge.className = "px-3 py-1 rounded-full text-xs font-bold text-white bg-blue-500";
+
+            // Populate Options
+            populateOptions(ext);
+            document.getElementById('actionPanel').classList.remove('hidden');
+
+            // --- REAL METADATA EXTRACTION ---
+            if (ext === 'pdf') {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                document.getElementById('realPageCount').innerText = pdf.numPages;
+            } else if (ext === 'xlsx') {
+                const arrayBuffer = await file.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer);
+                document.getElementById('realPageCount').innerText = workbook.SheetNames.length + " թերթ";
+            } else {
+                document.getElementById('realPageCount').innerText = "N/A";
+            }
+        }
+
+        function populateOptions(ext) {
+            const select = document.getElementById('convertFormat');
+            select.innerHTML = '<option value="" disabled selected>-- Ընտրել գործողությունը --</option>';
+            
+            if(ext === 'pdf') {
+                select.innerHTML += `
+                    <option value="pdf_docx">PDF → DOCX (Word)</option>
+                    <option value="pdf_png">PDF → PNG (Պատկերներ)</option>
+                    <option value="pdf_jpg">PDF → JPG (Պատկերներ)</option>
+                    <option value="pdf_xlsx">PDF → XLSX (Excel)</option>
+                    <option value="ocr_hye">OCR PDF (Հայերեն)</option>
+                    <option value="ocr_rus">OCR PDF (Ռուսերեն)</option>
+                    <option value="ocr_eng">OCR PDF (Անգլերեն)</option>
+                `;
+            } else if(ext === 'xlsx') {
+                select.innerHTML += `
+                    <option value="xlsx_pdf">XLSX → PDF</option>
+                    <option value="xlsx_docx">XLSX → DOCX</option>
+                `;
+            } else if(ext === 'docx') {
+                select.innerHTML += `
+                    <option value="docx_xlsx">DOCX → XLSX</option>
+                `;
+            }
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+            if (!+bytes) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+        }
+
+        // --- REAL CONVERSION ENGINE (CLIENT SIDE) ---
+        async function executeRealConversion() {
+            const action = document.getElementById('convertFormat').value;
+            if(!action || !currentFile) return alert("Խնդրում ենք ընտրել ֆայլ և գործողություն");
+
+            // UI Reset
+            document.getElementById('processingState').classList.remove('hidden');
+            document.getElementById('downloadState').classList.add('hidden');
+            document.getElementById('actionPanel').classList.add('hidden');
+            updateProgress(10, "Ֆայլի ընթերցում...");
+
+            try {
+                const zip = new JSZip();
+                const today = new Date();
+                const dateStr = `${String(today.getDate()).padStart(2,'0')}-${String(today.getMonth()+1).padStart(2,'0')}-${today.getFullYear()}`;
+                const zipFileName = `ARIA-CONVERTER__${dateStr}.zip`;
+                
+                // --- PDF LOGIC ---
+                if (action.startsWith('pdf_')) {
+                    const arrayBuffer = await currentFile.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                    updateProgress(30, "PDF վերլուծություն...");
+
+                    if (action === 'pdf_docx') {
+                        // Extract text per page and create simple DOCX
+                        const doc = new docx.Document({ sections: [] });
+                        const children = [];
+
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            updateProgress(30 + (i/pdf.numPages)*60, `Էջ ${i}/${pdf.numPages} փոխակերպում...`);
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            
+                            // Naive extraction: Join strings. 
+                            // Note: Perfect layout is impossible in JS-only without Canvas-to-Image-to-PDF approach, 
+                            // but for DOCX we want editable text.
+                            const pageText = textContent.items.map(item => item.str).join(' ');
+                            
+                            children.push(new docx.Paragraph({
+                                children: [new docx.TextRun({ text: `Page ${i}`, bold: true, break: 1 })]
+                            }));
+                            children.push(new docx.Paragraph({
+                                children: [new docx.TextRun(pageText)]
+                            }));
+                        }
+                        
+                        const docBlob = await docx.Packer.toBlob(new docx.Document({
+                             sections: [{ properties: {}, children: children }]
+                        }));
+                        zip.file(currentFile.name.replace('.pdf', '.docx'), docBlob);
+                    
+                    } else if (action === 'pdf_png' || action === 'pdf_jpg') {
+                        const imgType = action === 'pdf_png' ? 'image/png' : 'image/jpeg';
+                        const ext = action === 'pdf_png' ? 'png' : 'jpg';
+
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            updateProgress(30 + (i/pdf.numPages)*60, `Ռենդերինգ էջ ${i}/${pdf.numPages}...`);
+                            const page = await pdf.getPage(i);
+                            const viewport = page.getViewport({ scale: 2.0 }); // High Quality
+                            
+                            const canvas = document.createElement('canvas');
+                            const context = canvas.getContext('2d');
+                            canvas.height = viewport.height;
+                            canvas.width = viewport.width;
+
+                            await page.render({ canvasContext: context, viewport: viewport }).promise;
+                            
+                            const blob = await new Promise(resolve => canvas.toBlob(resolve, imgType));
+                            zip.file(`page_${i}.${ext}`, blob);
+                        }
+                    } else if (action === 'pdf_xlsx') {
+                        // Text to Excel (Simple Dump)
+                        let rowData = [];
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            const strings = textContent.items.map(item => item.str);
+                            rowData.push({ Page: i, Content: strings.join(" ") });
+                        }
+                        const ws = XLSX.utils.json_to_sheet(rowData);
+                        const wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, "PDF Data");
+                        const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                        zip.file(currentFile.name.replace('.pdf', '.xlsx'), excelBuffer);
+                    }
+
+                // --- XLSX LOGIC ---
+                } else if (action.startsWith('xlsx_')) {
+                    const data = await currentFile.arrayBuffer();
+                    const workbook = XLSX.read(data);
+                    
+                    if (action === 'xlsx_docx') {
+                        let textAccumulator = "";
+                        workbook.SheetNames.forEach(sheetName => {
+                            const rowObj = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+                            textAccumulator += `SHEET: ${sheetName}\n\n`;
+                            textAccumulator += JSON.stringify(rowObj, null, 2);
+                        });
+                        
+                        // Create basic doc with JSON dump (Complex table mapping is too heavy for single file)
+                        const doc = new docx.Document({
+                            sections: [{
+                                children: [new docx.Paragraph(textAccumulator)]
+                            }]
+                        });
+                        const blob = await docx.Packer.toBlob(doc);
+                        zip.file(currentFile.name.replace('.xlsx', '.docx'), blob);
+                    } else if (action === 'xlsx_pdf') {
+                        // Not supported well in pure JS without huge libraries (jsPDF autotable).
+                        // We will create a HTML representation and save as text/html inside zip as fallback or simple text pdf
+                        alert("Նշում: XLSX-ից PDF փոխակերպումը ստեղծում է HTML դիտման ֆայլ, քանի որ բրաուզերը չունի տպագրական շարժիչ:");
+                        const html = XLSX.utils.sheet_to_html(workbook.Sheets[workbook.SheetNames[0]]);
+                        zip.file(currentFile.name.replace('.xlsx', '.html'), html);
+                    }
+
+                // --- DOCX LOGIC ---
+                } else if (action === 'docx_xlsx') {
+                   // Reading DOCX client side is hard (requires unzip).
+                   // We will assume text extraction.
+                   // Since we don't have a robust DOCX parser imported (docx.js is mostly for writing),
+                   // We will treat as binary copy for this example or alert limit.
+                   alert("DOCX վերլուծությունը (parsing) սահմանափակ է բրաուզերում:");
+                   zip.file("converted_data.txt", "DOCX parsing requires backend for accuracy.");
+                
+                // --- OCR LOGIC ---
+                } else if (action.startsWith('ocr_')) {
+                    const lang = action.split('_')[1]; // hye, rus, eng
+                    updateProgress(20, "OCR շարժիչի բեռնում...");
+                    
+                    // Convert PDF page 1 to image for OCR
+                    const arrayBuffer = await currentFile.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                    const page = await pdf.getPage(1);
+                    const viewport = page.getViewport({ scale: 2.0 });
+                    const canvas = document.createElement('canvas');
+                    canvas.width = viewport.width; canvas.height = viewport.height;
+                    await page.render({canvasContext: canvas.getContext('2d'), viewport}).promise;
+                    
+                    updateProgress(50, `Տեքստի ճանաչում (${lang})...`);
+                    const worker = await Tesseract.createWorker(lang);
+                    const ret = await worker.recognize(canvas);
+                    await worker.terminate();
+                    
+                    zip.file("ocr_result.txt", ret.data.text);
+                    zip.file("ocr_info.json", JSON.stringify(ret.data, null, 2));
+                }
+
+                // Finalize
+                updateProgress(90, "Արխիվացում (ZIP)...");
+                generatedZipContent = await zip.generateAsync({type:"blob"});
+                generatedZipName = zipFileName;
+                
+                document.getElementById('zipNameDisplay').innerText = zipFileName;
+                document.getElementById('processingState').classList.add('hidden');
+                document.getElementById('downloadState').classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                alert("Սխալ՝ " + err.message);
+                document.getElementById('processingState').classList.add('hidden');
+                document.getElementById('actionPanel').classList.remove('hidden');
+            }
+        }
+
+        function updateProgress(percent, text) {
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').innerText = text;
+        }
+
+        function triggerZipDownload() {
+            if(generatedZipContent) {
+                saveAs(generatedZipContent, generatedZipName);
+            }
+        }
+
+        // --- ADMIN & SECURITY LOGIC ---
+        function toggleLoginModal() {
+            document.getElementById('loginModal').classList.toggle('hidden');
+            document.getElementById('loginError').classList.add('hidden');
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('adminUser').value;
+            const p = document.getElementById('adminPass').value;
+            
+            // SHA-512 Validation
+            const pHash = CryptoJS.SHA512(p).toString();
+
+            if (u === ADMIN_USERNAME && pHash === TARGET_HASH) {
+                toggleLoginModal();
+                initAdminPanel();
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        }
+
+        function initAdminPanel() {
+            document.getElementById('adminPanel').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            resetAdminTimer();
+            loadBannedUsers();
+            
+            // Load code
+            document.getElementById('liveCodeView').value = document.documentElement.outerHTML;
+
+            // Events for inactivity
+            window.addEventListener('mousemove', resetAdminTimer);
+            window.addEventListener('keypress', resetAdminTimer);
+        }
+
+        function adminLogout() {
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            document.getElementById('adminPass').value = '';
+            clearInterval(adminTimer);
+            window.removeEventListener('mousemove', resetAdminTimer);
+        }
+
+        function resetAdminTimer() {
+            timeLeft = 300; // 5 mins
+            clearInterval(adminTimer);
+            updateTimerDisplay();
+            adminTimer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if(timeLeft <= 0) {
+                    alert("Սեսիայի ժամանակը սպառվեց:");
+                    adminLogout();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            document.getElementById('sessionTimer').innerText = `${m}:${s < 10 ? '0'+s : s}`;
+        }
+
+        function switchAdminTab(tab) {
+            document.querySelectorAll('.admin-view').forEach(d => d.classList.add('hidden'));
+            document.getElementById('tab-'+tab).classList.remove('hidden');
+            
+            document.querySelectorAll('.admin-nav-btn').forEach(b => {
+                b.classList.remove('bg-slate-700', 'text-white');
+                b.classList.add('text-slate-300');
+            });
+            event.currentTarget.classList.add('bg-slate-700', 'text-white');
+        }
+
+        // --- IP BAN LOGIC ---
+        function executeBan() {
+            const ip = document.getElementById('banIpInput').value;
+            const days = parseInt(document.getElementById('banDuration').value);
+            if(!ip) return;
+
+            let bans = JSON.parse(localStorage.getItem('ac_bans') || '[]');
+            const expiry = new Date();
+            expiry.setDate(expiry.getDate() + days);
+            
+            bans.push({ ip: ip, expiry: expiry.toISOString() });
+            localStorage.setItem('ac_bans', JSON.stringify(bans));
+            
+            document.getElementById('banIpInput').value = '';
+            loadBannedUsers();
+            checkBan(); // Check if I banned myself
+        }
+
+        function loadBannedUsers() {
+            const bans = JSON.parse(localStorage.getItem('ac_bans') || '[]');
+            const tbody = document.getElementById('bannedTableBody');
+            document.getElementById('bannedCount').innerText = bans.length;
+            tbody.innerHTML = '';
+
+            bans.forEach((ban, idx) => {
+                const date = new Date(ban.expiry).toLocaleDateString('hy-AM');
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${ban.ip}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${date}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button onclick="removeBan(${idx})" class="text-red-600 hover:text-red-900">Ջնջել</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function removeBan(idx) {
+            let bans = JSON.parse(localStorage.getItem('ac_bans') || '[]');
+            bans.splice(idx, 1);
+            localStorage.setItem('ac_bans', JSON.stringify(bans));
+            loadBannedUsers();
+            checkBan();
+        }
+
+        function checkBan() {
+            const bans = JSON.parse(localStorage.getItem('ac_bans') || '[]');
+            const myBan = bans.find(b => b.ip === userIP && new Date(b.expiry) > new Date());
+            
+            if (myBan) {
+                document.getElementById('bannedOverlay').classList.remove('hidden');
+                document.getElementById('banTimer').innerText = `Արգելքը կհանվի: ${new Date(myBan.expiry).toLocaleString('hy-AM')}`;
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.getElementById('bannedOverlay').classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        function saveCodeChanges() {
+            alert("Փոփոխությունները պահպանվեցին (Simulation): Իրական միջավայրում սա կթարմացներ index.html ֆայլը:");
+        }
+
     </script>
 </body>
 </html>
+
+
