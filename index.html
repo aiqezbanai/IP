@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PhoneSync Sync & Share</title>
+    <title>PhoneSync Sync</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -26,11 +26,15 @@
 
         input { font-size: 16px !important; }
         .btn-active:active { transform: scale(0.96); }
-        .peer-card { animation: slideUp 0.4s ease-out; }
+        
+        .peer-item {
+            animation: pulse-border 2s infinite;
+        }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes pulse-border {
+            0% { border-color: rgba(37, 99, 235, 0.1); }
+            50% { border-color: rgba(37, 99, 235, 0.5); }
+            100% { border-color: rgba(37, 99, 235, 0.1); }
         }
 
         #app-scroller::-webkit-scrollbar { width: 0; display: none; }
@@ -39,26 +43,28 @@
 <body class="text-slate-900">
 
     <div id="app-scroller">
+        <!-- Header -->
         <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shrink-0">
             <div class="max-w-md mx-auto px-5 py-4 flex justify-between items-center">
                 <div class="flex items-center gap-2">
                     <div class="bg-blue-600 w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-lg">
-                        <i class="fas fa-wifi text-sm"></i>
+                        <i class="fas fa-network-wired text-sm"></i>
                     </div>
                     <span class="font-black text-slate-800 tracking-tighter text-xl uppercase">PhoneSync</span>
                 </div>
-                <div id="status-tag" class="text-[9px] font-black px-3 py-1.5 rounded-full bg-slate-100 text-slate-400 uppercase tracking-widest">
+                <div id="status-tag" class="text-[9px] font-black px-3 py-1.5 rounded-full bg-slate-100 text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
                     Որոնում...
                 </div>
             </div>
         </header>
 
         <main class="max-w-md mx-auto w-full px-5 py-6 flex-grow">
-            <!-- Storage Card -->
+            <!-- VCF Tools -->
             <div class="bg-slate-900 rounded-[2.5rem] p-7 text-white mb-8 shadow-2xl relative overflow-hidden">
                 <div class="relative z-10">
-                    <h2 class="text-2xl font-bold mb-1">Հեռախոսագիրք</h2>
-                    <p class="text-slate-400 text-[11px] mb-6 font-medium uppercase tracking-wider">Տվյալները պահպանված են</p>
+                    <h2 class="text-2xl font-bold mb-1 text-white">Հեռախոսագիրք</h2>
+                    <p class="text-slate-400 text-[11px] mb-6 font-medium uppercase tracking-wider">Տվյալները պահվում են դիտարկիչում</p>
                     
                     <div class="grid grid-cols-2 gap-3">
                         <label class="bg-white/10 hover:bg-white/15 py-4 rounded-2xl text-[11px] font-bold text-center cursor-pointer transition-all border border-white/5 flex items-center justify-center gap-2 btn-active">
@@ -70,44 +76,50 @@
                         </button>
                     </div>
                 </div>
-                <i class="fas fa-database absolute -right-6 -bottom-6 text-white/5 text-[10rem] rotate-12"></i>
+                <i class="fas fa-layer-group absolute -right-6 -bottom-6 text-white/5 text-[10rem] rotate-12"></i>
             </div>
 
-            <!-- Manual Add -->
+            <!-- Manual Form -->
             <section class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 mb-8">
                 <div class="space-y-4">
                     <input type="text" id="name-in" placeholder="Անուն Ազգանուն" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500/10 text-sm font-medium">
                     <input type="tel" id="phone-in" placeholder="+374 __ ___ ___" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500/10 text-sm font-medium">
                     <button id="add-btn" class="w-full bg-slate-800 text-white py-4 rounded-2xl font-bold text-sm btn-active flex items-center justify-center gap-2">
-                        <i class="fas fa-plus"></i> Ավելացնել
+                        <i class="fas fa-plus"></i> Ավելացնել ցանկում
                     </button>
                 </div>
             </section>
 
+            <!-- Contacts List -->
             <div class="flex justify-between items-center mb-5 px-2">
                 <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Կոնտակտներ</span>
                 <span id="counter" class="text-[10px] font-black bg-blue-600 text-white px-3 py-1 rounded-full">0</span>
             </div>
+            <div id="contact-list" class="space-y-3 mb-10"></div>
 
-            <div id="contact-list" class="space-y-3 pb-24"></div>
+            <!-- Peers Section (Now under contacts) -->
+            <div id="peers-container" class="mt-8">
+                <div class="flex items-center gap-2 mb-4 px-2">
+                    <span class="text-[11px] font-black text-blue-600 uppercase tracking-widest">Ակտիվ սարքեր ցանցում</span>
+                    <div class="flex-grow border-t border-blue-100"></div>
+                </div>
+                <div id="peer-list" class="space-y-3 pb-10">
+                    <!-- Peers injected here -->
+                </div>
+            </div>
         </main>
     </div>
 
-    <!-- Peer Discovery Overlay -->
-    <div id="peer-overlay" class="fixed bottom-6 left-5 right-5 z-[100] pointer-events-none">
-        <div id="peer-list" class="flex flex-col gap-2 pointer-events-auto"></div>
-    </div>
-
     <!-- Confirmation Modal -->
-    <div id="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] hidden flex items-center justify-center p-6">
+    <div id="modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[200] hidden flex items-center justify-center p-6">
         <div class="bg-white rounded-[2.5rem] w-full max-w-xs p-8 text-center shadow-2xl">
             <div class="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center text-blue-600 mx-auto mb-4">
-                <i class="fas fa-paper-plane text-2xl"></i>
+                <i class="fas fa-share-nodes text-2xl"></i>
             </div>
             <h3 class="font-black text-slate-800 text-lg mb-2">Ուղարկե՞լ</h3>
-            <p id="modal-text" class="text-slate-500 text-xs mb-8">Ուղարկել հեռախոսագիրքը այս սարքին:</p>
+            <p id="modal-text" class="text-slate-500 text-xs mb-8">Ուղարկել ձեր ամբողջ հեռախոսագիրքը այս սարքին:</p>
             <div class="flex flex-col gap-2">
-                <button id="confirm-btn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-sm btn-active">ԱՅՈ</button>
+                <button id="confirm-btn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-sm btn-active">ԱՅՈ, ՈՒՂԱՐԿԵԼ</button>
                 <button id="cancel-btn" class="w-full bg-slate-100 text-slate-500 py-4 rounded-2xl font-bold text-sm btn-active">ՈՉ</button>
             </div>
         </div>
@@ -116,22 +128,24 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot, query, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Firebase Configuration
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'phonesync-net-final';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'phonesync-shared-v1';
 
-        let contacts = JSON.parse(localStorage.getItem('ps_contacts')) || [];
+        // Local State
+        let contacts = JSON.parse(localStorage.getItem('ps_contacts_v2')) || [];
         let currentUserId = null;
-        let selectedPeerId = null;
+        let targetPeerId = null;
 
-        // 1. Init & Persistence
+        // Initialization
         window.addEventListener('load', () => {
-            initAuth();
             renderList();
+            initAuth();
         });
 
         async function initAuth() {
@@ -140,77 +154,82 @@
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         currentUserId = user.uid;
-                        document.getElementById('status-tag').innerText = "ԱՌՑԱՆՑ";
-                        document.getElementById('status-tag').classList.replace('text-slate-400', 'text-green-600');
-                        document.getElementById('status-tag').classList.replace('bg-slate-100', 'bg-green-50');
-                        presenceHeartbeat();
-                        listenForPeers();
-                        listenForIncoming();
+                        updateStatusTag(true);
+                        startPresence();
+                        subscribeToPeers();
+                        subscribeToTransfers();
                     }
                 });
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Auth error", e); }
         }
 
-        // 2. Presence & Peer Discovery
-        async function presenceHeartbeat() {
-            const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'online_users', currentUserId);
-            await setDoc(userRef, { last_seen: serverTimestamp(), name: "Սարք " + currentUserId.slice(-4) });
-            setTimeout(presenceHeartbeat, 15000); // 15 sec heartbeat
+        function updateStatusTag(online) {
+            const tag = document.getElementById('status-tag');
+            if(online) {
+                tag.innerHTML = '<span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> ԱՌՑԱՆՑ';
+                tag.className = "text-[9px] font-black px-3 py-1.5 rounded-full bg-green-50 text-green-600 uppercase tracking-widest flex items-center gap-2";
+            }
         }
 
-        function listenForPeers() {
-            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'online_users');
+        // Heartbeat to show device is online
+        async function startPresence() {
+            if (!currentUserId) return;
+            const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'presence', currentUserId);
+            await setDoc(userRef, { 
+                last_seen: serverTimestamp(), 
+                deviceName: "Սարք " + currentUserId.slice(-4) 
+            });
+            setTimeout(startPresence, 10000); // 10s heartbeat
+        }
+
+        // Listen for other devices
+        function subscribeToPeers() {
+            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'presence');
             onSnapshot(colRef, (snap) => {
                 const list = document.getElementById('peer-list');
                 list.innerHTML = '';
+                let found = false;
+
                 snap.forEach(d => {
                     if (d.id !== currentUserId) {
-                        const peer = d.data();
-                        const card = document.createElement('div');
-                        card.className = "peer-card bg-white p-4 rounded-3xl shadow-xl border border-blue-100 flex items-center justify-between pointer-events-auto";
-                        card.innerHTML = `
-                            <div class="flex items-center gap-3">
-                                <div class="bg-blue-600 w-2 h-2 rounded-full animate-pulse"></div>
-                                <span class="text-[10px] font-black text-slate-800 uppercase">${peer.name}</span>
-                            </div>
-                            <button class="text-[10px] font-black bg-blue-600 text-white px-4 py-2 rounded-xl btn-active share-trigger" data-id="${d.id}">ՈՒՂԱՐԿԵԼ</button>
-                        `;
-                        card.querySelector('.share-trigger').onclick = () => openModal(d.id, peer.name);
-                        list.appendChild(card);
+                        const data = d.data();
+                        // Filter out stale devices (over 30s)
+                        if (data.last_seen && (Date.now() - data.last_seen.toMillis() < 30000)) {
+                            found = true;
+                            const el = document.createElement('div');
+                            el.className = "peer-item bg-blue-50/50 border border-blue-100 p-4 rounded-3xl flex items-center justify-between shadow-sm";
+                            el.innerHTML = `
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-[10px]">
+                                        <i class="fas fa-mobile-screen"></i>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-slate-700">${data.deviceName}</span>
+                                </div>
+                                <button class="bg-blue-600 text-white text-[9px] font-black px-4 py-2 rounded-xl btn-active" onclick="window.requestTransfer('${d.id}', '${data.deviceName}')">
+                                    ՈՒՂԱՐԿԵԼ ՑԱՆԿԸ
+                                </button>
+                            `;
+                            list.appendChild(el);
+                        }
                     }
                 });
+
+                if (!found) {
+                    list.innerHTML = `<div class="text-center py-6 text-[10px] text-slate-300 font-bold uppercase tracking-tight">Այլ սարքեր չկան</div>`;
+                }
             });
         }
 
-        // 3. Messaging (Transfer)
-        function openModal(peerId, peerName) {
-            selectedPeerId = peerId;
-            document.getElementById('modal-text').innerText = `Ուղարկել հեռախոսագիրքը ${peerName}-ին:`;
-            document.getElementById('modal').classList.remove('hidden');
-        }
-
-        document.getElementById('confirm-btn').onclick = async () => {
-            if (!selectedPeerId) return;
-            const transferRef = doc(db, 'artifacts', appId, 'public', 'data', 'transfers', selectedPeerId);
-            await setDoc(transferRef, {
-                from: currentUserId,
-                data: JSON.stringify(contacts),
-                ts: serverTimestamp()
-            });
-            document.getElementById('modal').classList.add('hidden');
-        };
-
-        document.getElementById('cancel-btn').onclick = () => document.getElementById('modal').classList.add('hidden');
-
-        function listenForIncoming() {
+        // Listen for incoming data
+        function subscribeToTransfers() {
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'transfers', currentUserId);
             onSnapshot(docRef, async (snap) => {
                 if (snap.exists()) {
                     const payload = snap.data();
-                    if (confirm("Դուք ստացել եք նոր հեռախոսագիրք: Միացնե՞լ ձեր ցանկին:")) {
-                        const newContacts = JSON.parse(payload.data);
-                        contacts = [...contacts, ...newContacts];
-                        saveToLocal();
+                    if (confirm("Դուք ստացել եք հեռախոսագիրք մեկ այլ սարքից: Միացնե՞լ ձեր ցանկին:")) {
+                        const incoming = JSON.parse(payload.data);
+                        contacts = [...contacts, ...incoming];
+                        saveLocal();
                         renderList();
                     }
                     await deleteDoc(docRef);
@@ -218,50 +237,77 @@
             });
         }
 
-        // 4. Local CRUD
-        function saveToLocal() {
-            localStorage.setItem('ps_contacts', JSON.stringify(contacts));
+        // UI Handlers
+        window.requestTransfer = (id, name) => {
+            targetPeerId = id;
+            document.getElementById('modal-text').innerText = `Ուղարկել ձեր ամբողջ հեռախոսագիրքը (${contacts.length} կոնտակտ) ${name}-ին:`;
+            document.getElementById('modal').classList.remove('hidden');
+        };
+
+        document.getElementById('confirm-btn').onclick = async () => {
+            if (!targetPeerId || contacts.length === 0) {
+                document.getElementById('modal').classList.add('hidden');
+                return;
+            }
+            const transferRef = doc(db, 'artifacts', appId, 'public', 'data', 'transfers', targetPeerId);
+            await setDoc(transferRef, {
+                from: currentUserId,
+                data: JSON.stringify(contacts),
+                timestamp: serverTimestamp()
+            });
+            document.getElementById('modal').classList.add('hidden');
+            alert("Ուղարկված է:");
+        };
+
+        document.getElementById('cancel-btn').onclick = () => document.getElementById('modal').classList.add('hidden');
+
+        // CRUD Logic
+        function saveLocal() {
+            localStorage.setItem('ps_contacts_v2', JSON.stringify(contacts));
         }
 
         function renderList() {
             const container = document.getElementById('contact-list');
             document.getElementById('counter').innerText = contacts.length;
+            
             if (contacts.length === 0) {
-                container.innerHTML = `<div class="text-center py-20 bg-white rounded-[2.5rem] border border-dashed border-slate-200 text-slate-300 text-[10px] font-bold uppercase">Դատարկ է</div>`;
+                container.innerHTML = `<div class="text-center py-12 bg-white rounded-[2rem] border border-dashed border-slate-200 text-slate-300 text-[10px] font-bold uppercase tracking-widest">Դատարկ է</div>`;
                 return;
             }
+
             container.innerHTML = contacts.map((c, i) => `
                 <div class="bg-white p-4 rounded-3xl flex items-center justify-between border border-slate-50 shadow-sm">
                     <div class="flex items-center gap-4">
-                        <div class="bg-blue-50 text-blue-600 h-10 w-10 rounded-xl flex items-center justify-center font-black">${c.name[0].toUpperCase()}</div>
+                        <div class="bg-slate-50 text-slate-400 h-10 w-10 rounded-xl flex items-center justify-center font-black">${(c.name || "?")[0].toUpperCase()}</div>
                         <div>
-                            <div class="font-bold text-sm text-slate-800">${c.name}</div>
+                            <div class="font-bold text-sm text-slate-800 tracking-tight">${c.name}</div>
                             <div class="text-[10px] text-slate-400 font-bold">${c.phone}</div>
                         </div>
                     </div>
-                    <button onclick="window.delEntry(${i})" class="text-slate-200 hover:text-red-500 px-2"><i class="fas fa-trash-alt text-xs"></i></button>
+                    <button onclick="window.delContact(${i})" class="text-slate-200 hover:text-red-500 p-2"><i class="fas fa-trash-alt text-xs"></i></button>
                 </div>
             `).join('');
         }
 
-        window.delEntry = (i) => { contacts.splice(i, 1); saveToLocal(); renderList(); };
+        window.delContact = (i) => { contacts.splice(i, 1); saveLocal(); renderList(); };
 
         document.getElementById('add-btn').onclick = () => {
             const n = document.getElementById('name-in');
             const p = document.getElementById('phone-in');
             if (!n.value || !p.value) return;
             contacts.push({ name: n.value, phone: p.value });
-            n.value = ''; p.value = ''; saveToLocal(); renderList();
+            n.value = ''; p.value = ''; saveLocal(); renderList();
         };
 
-        // 5. VCF Logic
+        // Export/Import
         document.getElementById('vcf-export').onclick = () => {
             if (contacts.length === 0) return;
-            const vcf = contacts.map(c => `BEGIN:VCARD\nVERSION:3.0\nFN:${c.name}\nTEL:${c.phone}\nEND:VCARD`).join('\n');
-            const blob = new Blob([vcf], { type: 'text/vcard' });
-            const url = URL.createObjectURL(blob);
+            const content = contacts.map(c => `BEGIN:VCARD\nVERSION:3.0\nFN:${c.name}\nTEL:${c.phone}\nEND:VCARD`).join('\n');
+            const blob = new Blob([content], { type: 'text/vcard' });
             const a = document.createElement('a');
-            a.href = url; a.download = 'contacts.vcf'; a.click();
+            a.href = URL.createObjectURL(blob);
+            a.download = 'PhoneSync_Backup.vcf';
+            a.click();
         };
 
         document.getElementById('vcf-import').onchange = (e) => {
@@ -275,7 +321,7 @@
                     const tel = card.match(/TEL.*:(.*)/);
                     if (fn && tel) contacts.push({ name: fn[1].trim(), phone: tel[1].trim() });
                 });
-                saveToLocal(); renderList();
+                saveLocal(); renderList();
             };
             reader.readAsText(file);
         };
