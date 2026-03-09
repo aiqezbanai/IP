@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PhoneSync - Կոնտակտների տեղափոխում</title>
+    <title>PhoneSync - VCF Կառավարիչ</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -23,7 +23,7 @@
             touch-action: manipulation;
         }
 
-        #safe-scroller {
+        #app-container {
             height: 100%;
             overflow-y: auto;
             overflow-x: hidden;
@@ -34,202 +34,262 @@
 
         input { font-size: 16px !important; }
 
-        .btn-press:active { transform: scale(0.97); }
+        .btn-active:active { transform: scale(0.96); }
         
-        .contact-item {
-            animation: fadeIn 0.3s ease forwards;
+        .contact-anim {
+            animation: slideUp 0.3s ease-out forwards;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        #safe-scroller::-webkit-scrollbar { width: 0; display: none; }
+        #app-container::-webkit-scrollbar { width: 0; display: none; }
     </style>
 </head>
 <body class="text-slate-900">
 
-    <div id="safe-scroller">
+    <div id="app-container">
         <!-- Header -->
         <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shrink-0">
             <div class="max-w-md mx-auto px-5 py-4 flex justify-between items-center">
                 <div class="flex items-center gap-2">
-                    <div class="bg-indigo-600 w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-                        <i class="fas fa-address-book text-sm"></i>
+                    <div class="bg-blue-600 w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-lg">
+                        <i class="fas fa-file-export text-sm"></i>
                     </div>
-                    <span class="font-black text-slate-800 tracking-tighter text-xl">PhoneSync</span>
+                    <span class="font-black text-slate-800 tracking-tighter text-xl uppercase">PhoneSync</span>
                 </div>
-                <div class="text-[9px] font-bold px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 uppercase tracking-widest">
-                    Լոկալ Ռեժիմ
+                <div class="text-[9px] font-black px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 uppercase tracking-widest border border-blue-100">
+                    VCF v3.0
                 </div>
             </div>
         </header>
 
         <main class="max-w-md mx-auto w-full px-5 py-6 flex-grow">
-            <!-- Info Card -->
-            <div class="bg-indigo-600 rounded-[2.5rem] p-7 text-white mb-8 shadow-xl relative overflow-hidden">
+            <!-- Main Actions -->
+            <div class="bg-slate-900 rounded-[2.5rem] p-7 text-white mb-8 shadow-2xl relative overflow-hidden">
                 <div class="relative z-10">
-                    <h2 class="text-2xl font-bold mb-2"><i>PhoneSync</i></h2>
-                    <p class="text-indigo-100 text-xs mb-6">Տեղափոխեք կոնտակտները առանց հավելյալ ծրագրերի</p>
+                    <h2 class="text-2xl font-bold mb-1">Կոնտակտների Փոխարկիչ</h2>
+                    <p class="text-slate-400 text-[11px] mb-6 font-medium uppercase tracking-wider">Ստեղծեք ստանդարտ .vcf ֆայլեր</p>
                     
                     <div class="grid grid-cols-2 gap-3">
-                        <label class="bg-white/20 hover:bg-white/30 py-4 rounded-2xl text-[11px] font-bold text-center cursor-pointer transition-all flex items-center justify-center gap-2">
-                            <i class="fas fa-file-import"></i> Ներմուծել VCF
-                            <input type="file" id="import-vcf" accept=".vcf" class="hidden">
+                        <label class="bg-white/10 hover:bg-white/15 py-4 rounded-2xl text-[11px] font-bold text-center cursor-pointer transition-all border border-white/5 flex items-center justify-center gap-2 btn-active">
+                            <i class="fas fa-file-import opacity-70"></i> Ներմուծել
+                            <input type="file" id="vcf-import-input" accept=".vcf" class="hidden">
                         </label>
-                        <button id="export-vcf" class="bg-white text-indigo-600 py-4 rounded-2xl text-[11px] font-bold shadow-md btn-press transition-all flex items-center justify-center gap-2">
-                            <i class="fas fa-download"></i> Արտահանել VCF
+                        <button id="vcf-export-button" class="bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl text-[11px] font-bold shadow-lg shadow-blue-900/50 btn-active transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-download"></i> Արտահանել
                         </button>
                     </div>
                 </div>
-                <i class="fas fa-bolt absolute -right-6 -bottom-6 text-white/10 text-[10rem] rotate-12"></i>
+                <i class="fas fa-id-badge absolute -right-6 -bottom-6 text-white/5 text-[10rem] rotate-12"></i>
             </div>
 
-            <!-- Add Form -->
-            <section class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 mb-8">
-                <h3 class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-5">Ավելացնել նոր կոնտակտ</h3>
+            <!-- Add New Section -->
+            <section class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 mb-8">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5">Ավելացնել ցանկում</h3>
                 <div class="space-y-4">
-                    <input type="text" id="inp-name" placeholder="Անվանում" 
-                        class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-2 border-transparent focus:border-indigo-500/10 focus:bg-white transition-all text-sm">
-                    <input type="tel" id="inp-phone" placeholder="+374 XX XXX XXX" 
-                        class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-2 border-transparent focus:border-indigo-500/10 focus:bg-white transition-all text-sm">
-                    <button id="add-btn" class="w-full bg-slate-900 text-white py-4.5 rounded-2xl font-bold text-sm btn-press shadow-xl flex items-center justify-center gap-2 py-4">
-                        <i class="fas fa-user-plus"></i> Ավելացնել Ցանկում
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+                        <input type="text" id="contact-name" placeholder="Անուն Ազգանուն" 
+                            class="w-full bg-slate-50 pl-10 pr-4 py-4 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500/10 focus:bg-white transition-all text-sm font-medium">
+                    </div>
+                    <div class="relative">
+                        <i class="fas fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+                        <input type="tel" id="contact-phone" placeholder="+374 __ ___ ___" 
+                            class="w-full bg-slate-50 pl-10 pr-4 py-4 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500/10 focus:bg-white transition-all text-sm font-medium">
+                    </div>
+                    <button id="add-to-list-btn" class="w-full bg-slate-800 text-white py-4.5 rounded-2xl font-bold text-sm btn-active shadow-xl shadow-slate-200 flex items-center justify-center gap-2 py-4">
+                        <i class="fas fa-plus-circle"></i> Ավելացնել
                     </button>
                 </div>
             </section>
 
-            <!-- List Section -->
-            <div class="flex justify-between items-center mb-5 px-1">
-                <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Ընթացիկ Ցանկ</span>
-                <span id="badge-count" class="text-[10px] font-black bg-indigo-600 text-white px-3 py-1 rounded-full">0</span>
+            <!-- Counter and List -->
+            <div class="flex justify-between items-center mb-5 px-2">
+                <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Ընթացիկ Ցուցակ</span>
+                <span id="contact-counter" class="text-[10px] font-black bg-blue-600 text-white px-3 py-1 rounded-full">0</span>
             </div>
 
-            <div id="contact-list" class="space-y-3 pb-10">
-                <!-- Data will be injected here -->
+            <div id="contact-list-display" class="space-y-3 pb-12">
+                <!-- Data Placeholder -->
             </div>
         </main>
     </div>
 
+    <!-- Success Feedback Toast -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-full text-xs font-bold shadow-2xl opacity-0 translate-y-10 transition-all duration-300 z-[100] pointer-events-none">
+        <i class="fas fa-check-circle mr-2"></i> <span id="toast-msg">Պահպանված է</span>
+    </div>
+
     <script>
-        // Տվյալների պահպանման տեղական զանգված
-        let contacts = [];
+        // Local state management
+        let contactData = [];
 
-        // Էլեմենտների հղումները
-        const nameInput = document.getElementById('inp-name');
-        const phoneInput = document.getElementById('inp-phone');
-        const listContainer = document.getElementById('contact-list');
-        const badgeCount = document.getElementById('badge-count');
+        // UI elements
+        const nameInput = document.getElementById('contact-name');
+        const phoneInput = document.getElementById('contact-phone');
+        const listDisplay = document.getElementById('contact-list-display');
+        const counter = document.getElementById('contact-counter');
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toast-msg');
 
-        // Ցուցակի արտապատկերում
-        function render() {
-            badgeCount.innerText = contacts.length;
+        // Render the list
+        function updateUI() {
+            counter.innerText = contactData.length;
 
-            if (contacts.length === 0) {
-                listContainer.innerHTML = `
-                    <div class="text-center py-20 bg-white rounded-[2.5rem] border border-dashed border-slate-200">
-                        <i class="fas fa-folder-open text-slate-100 text-6xl mb-4"></i>
+            if (contactData.length === 0) {
+                listDisplay.innerHTML = `
+                    <div class="text-center py-16 bg-white rounded-[2.5rem] border border-dashed border-slate-200">
+                        <i class="fas fa-address-book text-slate-100 text-6xl mb-4"></i>
                         <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest">Ցանկը դատարկ է</p>
                     </div>`;
                 return;
             }
 
-            // Սորտավորում ըստ այբբենական կարգի
-            contacts.sort((a, b) => a.name.localeCompare(b.name));
+            // Sort alphabetical
+            contactData.sort((a, b) => a.name.localeCompare(b.name));
 
-            listContainer.innerHTML = '';
-            contacts.forEach((c, index) => {
-                const div = document.createElement('div');
-                div.className = "contact-item bg-white p-4.5 rounded-3xl flex items-center justify-between shadow-sm border border-slate-50";
-                div.innerHTML = `
+            listDisplay.innerHTML = '';
+            contactData.forEach((contact, idx) => {
+                const item = document.createElement('div');
+                item.className = "contact-anim bg-white p-4.5 rounded-3xl flex items-center justify-between shadow-sm border border-slate-50";
+                item.innerHTML = `
                     <div class="flex items-center gap-4">
-                        <div class="bg-indigo-50 text-indigo-600 h-11 w-11 rounded-2xl flex items-center justify-center font-black">
-                            ${(c.name || "?")[0].toUpperCase()}
+                        <div class="bg-blue-50 text-blue-600 h-11 w-11 rounded-2xl flex items-center justify-center font-black text-lg">
+                            ${(contact.name || "?")[0].toUpperCase()}
                         </div>
                         <div>
-                            <div class="font-bold text-sm text-slate-800">${c.name}</div>
-                            <div class="text-[10px] text-slate-400 font-bold tracking-wider">${c.phone}</div>
+                            <div class="font-bold text-sm text-slate-800 tracking-tight">${contact.name}</div>
+                            <div class="text-[10px] text-slate-400 font-bold tracking-wider mt-0.5">${contact.phone}</div>
                         </div>
                     </div>
-                    <button class="delete-trigger text-slate-200 hover:text-red-500 w-10 h-10 flex items-center justify-center transition-colors" data-index="${index}">
-                        <i class="fas fa-times-circle text-sm"></i>
+                    <button class="delete-btn text-slate-200 hover:text-red-500 w-10 h-10 flex items-center justify-center transition-colors" data-idx="${idx}">
+                        <i class="fas fa-trash-alt text-xs"></i>
                     </button>
                 `;
-                div.querySelector('.delete-trigger').onclick = () => deleteContact(index);
-                listContainer.appendChild(div);
+                item.querySelector('.delete-btn').onclick = () => deleteEntry(idx);
+                listDisplay.appendChild(item);
             });
         }
 
-        // Կոնտակտի ավելացում
-        function addContact() {
+        // Add contact to local array
+        function addEntry() {
             const name = nameInput.value.trim();
             const phone = phoneInput.value.trim();
 
             if (!name || !phone) {
                 nameInput.classList.add('border-red-200');
-                setTimeout(() => nameInput.classList.remove('border-red-200'), 1000);
+                setTimeout(() => nameInput.classList.remove('border-red-200'), 800);
                 return;
             }
 
-            contacts.push({ name, phone });
+            contactData.push({ name, phone });
             nameInput.value = '';
             phoneInput.value = '';
             nameInput.focus();
-            render();
+            
+            showToast("Ավելացվեց ցանկում");
+            updateUI();
         }
 
-        // Կոնտակտի ջնջում
-        function deleteContact(index) {
-            contacts.splice(index, 1);
-            render();
+        // Remove from local array
+        function deleteEntry(idx) {
+            contactData.splice(idx, 1);
+            updateUI();
         }
 
-        // VCF Արտահանում
+        // Core VCF Export Logic
         function exportVCF() {
-            if (contacts.length === 0) return;
-            const content = contacts.map(c => `BEGIN:VCARD\nVERSION:3.0\nFN:${c.name}\nTEL:${c.phone}\nEND:VCARD`).join('\n');
-            const blob = new Blob([content], {type: 'text/vcard'});
+            if (contactData.length === 0) {
+                showToast("Ցանկը դատարկ է", true);
+                return;
+            }
+
+            // Generate vCard string following vCard 3.0 standards
+            let vCardContent = "";
+            contactData.forEach(c => {
+                vCardContent += "BEGIN:VCARD\n";
+                vCardContent += "VERSION:3.0\n";
+                vCardContent += `FN:${c.name}\n`;
+                vCardContent += `N:;${c.name};;;\n`; // Simplified N format
+                vCardContent += `TEL;TYPE=CELL:${c.phone}\n`;
+                vCardContent += "END:VCARD\n";
+            });
+
+            // Create blob and download link
+            const blob = new Blob([vCardContent], { type: 'text/vcard;charset=utf-8' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'PhoneSync_Contacts.vcf';
-            a.click();
+            const link = document.createElement('a');
+            
+            // Format filename with current date
+            const dateStr = new Date().toISOString().slice(0, 10);
+            link.href = url;
+            link.download = `PhoneSync_Contacts_${dateStr}.vcf`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
             URL.revokeObjectURL(url);
+            showToast("Ֆայլը պատրաստ է");
         }
 
-        // VCF Ներմուծում
-        function importVCF(e) {
-            const file = e.target.files[0];
+        // VCF Import Parser
+        function importVCF(event) {
+            const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function(evt) {
-                const vCards = evt.target.result.split('BEGIN:VCARD');
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const vCards = text.split('BEGIN:VCARD');
+                let importCount = 0;
+
                 vCards.forEach(card => {
                     if (!card.includes('END:VCARD')) return;
+                    
+                    // Basic Regex for FN and TEL
                     const fnMatch = card.match(/FN:(.*)/);
                     const telMatch = card.match(/TEL.*:(.*)/);
+                    
                     if (fnMatch && telMatch) {
-                        contacts.push({
-                            name: fnMatch[1].trim(),
+                        contactData.push({
+                            name: fnMatch[1].trim().replace(/\r/g, ''),
                             phone: telMatch[1].trim().replace(/\r/g, '')
                         });
+                        importCount++;
                     }
                 });
-                render();
+                
+                showToast(`${importCount} կոնտակտ ներմուծվեց`);
+                updateUI();
             };
             reader.readAsText(file);
-            e.target.value = ''; // Reset input
+            event.target.value = ''; // Reset input for repeated imports
         }
 
-        // Իրադարձությունների կցում
-        document.getElementById('add-btn').onclick = addContact;
-        document.getElementById('export-vcf').onclick = exportVCF;
-        document.getElementById('import-vcf').onchange = importVCF;
+        // Feedback notification
+        function showToast(msg, isError = false) {
+            toastMsg.innerText = msg;
+            toast.style.backgroundColor = isError ? '#ef4444' : '#16a34a';
+            toast.classList.replace('opacity-0', 'opacity-100');
+            toast.classList.replace('translate-y-10', 'translate-y-0');
+            
+            setTimeout(() => {
+                toast.classList.replace('opacity-100', 'opacity-0');
+                toast.classList.replace('translate-y-0', 'translate-y-10');
+            }, 2000);
+        }
 
-        // Սկզբնական արտապատկերում
-        render();
+        // Bind events
+        document.getElementById('add-to-list-btn').onclick = addEntry;
+        document.getElementById('vcf-export-button').onclick = exportVCF;
+        document.getElementById('vcf-import-input').onchange = importVCF;
+
+        // Initialize display
+        updateUI();
     </script>
 </body>
 </html>
