@@ -1,331 +1,153 @@
 <!DOCTYPE html>
-<html lang="hy">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PhoneSync Sync</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Under Maintenance</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
+    <!-- Google Fonts for a clean look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
-        
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; -webkit-text-size-adjust: 100%;
-            touch-action: manipulation;
+        /* Custom styles to apply the font and ensure full height */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        #app-scroller {
-            height: 100%; overflow-y: auto; overflow-x: hidden;
-            display: flex; flex-direction: column;
-            -webkit-overflow-scrolling: touch;
+        /* Full-screen background container */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
         }
 
-        input { font-size: 16px !important; }
-        .btn-active:active { transform: scale(0.96); }
-        
-        .peer-item {
-            animation: pulse-border 2s infinite;
+        /* Semi-transparent overlay */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* 50% black transparency */
         }
-
-        @keyframes pulse-border {
-            0% { border-color: rgba(37, 99, 235, 0.1); }
-            50% { border-color: rgba(37, 99, 235, 0.5); }
-            100% { border-color: rgba(37, 99, 235, 0.1); }
-        }
-
-        #app-scroller::-webkit-scrollbar { width: 0; display: none; }
     </style>
 </head>
-<body class="text-slate-900">
+<body class="bg-gray-900 text-white">
 
-    <div id="app-scroller">
-        <!-- Header -->
-        <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shrink-0">
-            <div class="max-w-md mx-auto px-5 py-4 flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <div class="bg-blue-600 w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-lg">
-                        <i class="fas fa-network-wired text-sm"></i>
-                    </div>
-                    <span class="font-black text-slate-800 tracking-tighter text-xl uppercase">PhoneSync</span>
-                </div>
-                <div id="status-tag" class="text-[9px] font-black px-3 py-1.5 rounded-full bg-slate-100 text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
-                    Որոնում...
-                </div>
-            </div>
+    <!-- Background Image and Overlay -->
+    <div class="background-container">
+        <div class="overlay"></div>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <div class="flex flex-col min-h-screen justify-between p-4 sm:p-6 md:p-8">
+
+        <!-- Header Content -->
+        <header class="text-center w-full max-w-5xl mx-auto pt-10">
+            <!-- This space can be used for a logo if needed in the future -->
         </header>
 
-        <main class="max-w-md mx-auto w-full px-5 py-6 flex-grow">
-            <!-- VCF Tools -->
-            <div class="bg-slate-900 rounded-[2.5rem] p-7 text-white mb-8 shadow-2xl relative overflow-hidden">
-                <div class="relative z-10">
-                    <h2 class="text-2xl font-bold mb-1 text-white">Հեռախոսագիրք</h2>
-                    <p class="text-slate-400 text-[11px] mb-6 font-medium uppercase tracking-wider">Տվյալները պահվում են դիտարկիչում</p>
-                    
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="bg-white/10 hover:bg-white/15 py-4 rounded-2xl text-[11px] font-bold text-center cursor-pointer transition-all border border-white/5 flex items-center justify-center gap-2 btn-active">
-                            <i class="fas fa-file-import opacity-70"></i> Ներմուծել
-                            <input type="file" id="vcf-import" accept=".vcf" class="hidden">
-                        </label>
-                        <button id="vcf-export" class="bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl text-[11px] font-bold shadow-lg shadow-blue-900/50 btn-active transition-all flex items-center justify-center gap-2">
-                            <i class="fas fa-download"></i> Արտահանել
-                        </button>
+        <!-- Main Centered Content -->
+        <main class="flex-grow flex flex-col items-center justify-center text-center">
+            <div class="w-full max-w-4xl mx-auto">
+                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black uppercase tracking-wider mb-4 text-shadow-lg">
+                    Under Maintenance
+                </h1>
+                <p class="text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-10 text-gray-300">
+                    Our website is currently undergoing scheduled maintenance. We're working hard to improve our services and we'll be back online soon!
+                </p>
+
+                <!-- Countdown Timer -->
+                <div id="countdown" class="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-8 max-w-2xl mx-auto">
+                    <!-- Days -->
+                    <div class="bg-white/10 backdrop-blur-sm p-4 sm:p-6 rounded-lg">
+                        <div id="days" class="text-4xl sm:text-5xl md:text-6xl font-bold">00</div>
+                        <div class="text-xs sm:text-sm uppercase tracking-widest mt-1 text-gray-400">Days</div>
                     </div>
-                </div>
-                <i class="fas fa-layer-group absolute -right-6 -bottom-6 text-white/5 text-[10rem] rotate-12"></i>
-            </div>
-
-            <!-- Manual Form -->
-            <section class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 mb-8">
-                <div class="space-y-4">
-                    <input type="text" id="name-in" placeholder="Անուն Ազգանուն" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500/10 text-sm font-medium">
-                    <input type="tel" id="phone-in" placeholder="+374 __ ___ ___" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500/10 text-sm font-medium">
-                    <button id="add-btn" class="w-full bg-slate-800 text-white py-4 rounded-2xl font-bold text-sm btn-active flex items-center justify-center gap-2">
-                        <i class="fas fa-plus"></i> Ավելացնել ցանկում
-                    </button>
-                </div>
-            </section>
-
-            <!-- Contacts List -->
-            <div class="flex justify-between items-center mb-5 px-2">
-                <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Կոնտակտներ</span>
-                <span id="counter" class="text-[10px] font-black bg-blue-600 text-white px-3 py-1 rounded-full">0</span>
-            </div>
-            <div id="contact-list" class="space-y-3 mb-10"></div>
-
-            <!-- Peers Section (Now under contacts) -->
-            <div id="peers-container" class="mt-8">
-                <div class="flex items-center gap-2 mb-4 px-2">
-                    <span class="text-[11px] font-black text-blue-600 uppercase tracking-widest">Ակտիվ սարքեր ցանցում</span>
-                    <div class="flex-grow border-t border-blue-100"></div>
-                </div>
-                <div id="peer-list" class="space-y-3 pb-10">
-                    <!-- Peers injected here -->
+                    <!-- Hours -->
+                    <div class="bg-white/10 backdrop-blur-sm p-4 sm:p-6 rounded-lg">
+                        <div id="hours" class="text-4xl sm:text-5xl md:text-6xl font-bold">00</div>
+                        <div class="text-xs sm:text-sm uppercase tracking-widest mt-1 text-gray-400">Hours</div>
+                    </div>
+                    <!-- Minutes -->
+                    <div class="bg-white/10 backdrop-blur-sm p-4 sm:p-6 rounded-lg">
+                        <div id="minutes" class="text-4xl sm:text-5xl md:text-6xl font-bold">00</div>
+                        <div class="text-xs sm:text-sm uppercase tracking-widest mt-1 text-gray-400">Minutes</div>
+                    </div>
+                    <!-- Seconds -->
+                    <div class="bg-white/10 backdrop-blur-sm p-4 sm:p-6 rounded-lg">
+                        <div id="seconds" class="text-4xl sm:text-5xl md:text-6xl font-bold">00</div>
+                        <div class="text-xs sm:text-sm uppercase tracking-widest mt-1 text-gray-400">Seconds</div>
+                    </div>
                 </div>
             </div>
         </main>
+
+        <!-- Footer -->
+        <footer class="text-center w-full max-w-5xl mx-auto pb-5">
+            <p class="text-xs sm:text-sm text-gray-400">Copyright © | AI QEZ BAN | All rights reserved by law.</p>
+        </footer>
+
     </div>
 
-    <!-- Confirmation Modal -->
-    <div id="modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[200] hidden flex items-center justify-center p-6">
-        <div class="bg-white rounded-[2.5rem] w-full max-w-xs p-8 text-center shadow-2xl">
-            <div class="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center text-blue-600 mx-auto mb-4">
-                <i class="fas fa-share-nodes text-2xl"></i>
-            </div>
-            <h3 class="font-black text-slate-800 text-lg mb-2">Ուղարկե՞լ</h3>
-            <p id="modal-text" class="text-slate-500 text-xs mb-8">Ուղարկել ձեր ամբողջ հեռախոսագիրքը այս սարքին:</p>
-            <div class="flex flex-col gap-2">
-                <button id="confirm-btn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-sm btn-active">ԱՅՈ, ՈՒՂԱՐԿԵԼ</button>
-                <button id="cancel-btn" class="w-full bg-slate-100 text-slate-500 py-4 rounded-2xl font-bold text-sm btn-active">ՈՉ</button>
-            </div>
-        </div>
-    </div>
+    <script>
+        // --- COUNTDOWN TIMER SCRIPT ---
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Set the date we're counting down to (e.g., 10 days from now)
+        const countDownDate = new Date();
+        countDownDate.setDate(countDownDate.getDate() + 10);
 
-        // Firebase Configuration
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'phonesync-shared-v1';
+        // Get elements to display the countdown
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        const secondsEl = document.getElementById('seconds');
 
-        // Local State
-        let contacts = JSON.parse(localStorage.getItem('ps_contacts_v2')) || [];
-        let currentUserId = null;
-        let targetPeerId = null;
+        // Update the countdown every 1 second
+        const countdownInterval = setInterval(function() {
+            // Get today's date and time
+            const now = new Date().getTime();
 
-        // Initialization
-        window.addEventListener('load', () => {
-            renderList();
-            initAuth();
-        });
+            // Find the distance between now and the count down date
+            const distance = countDownDate - now;
 
-        async function initAuth() {
-            try {
-                await signInAnonymously(auth);
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        currentUserId = user.uid;
-                        updateStatusTag(true);
-                        startPresence();
-                        subscribeToPeers();
-                        subscribeToTransfers();
-                    }
-                });
-            } catch (e) { console.error("Auth error", e); }
-        }
+            // Time calculations for days, hours, minutes and seconds
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-        function updateStatusTag(online) {
-            const tag = document.getElementById('status-tag');
-            if(online) {
-                tag.innerHTML = '<span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> ԱՌՑԱՆՑ';
-                tag.className = "text-[9px] font-black px-3 py-1.5 rounded-full bg-green-50 text-green-600 uppercase tracking-widest flex items-center gap-2";
-            }
-        }
+            // Function to format number with a leading zero if it's less than 10
+            const formatTime = (time) => time < 10 ? `0${time}` : time;
 
-        // Heartbeat to show device is online
-        async function startPresence() {
-            if (!currentUserId) return;
-            const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'presence', currentUserId);
-            await setDoc(userRef, { 
-                last_seen: serverTimestamp(), 
-                deviceName: "Սարք " + currentUserId.slice(-4) 
-            });
-            setTimeout(startPresence, 10000); // 10s heartbeat
-        }
+            // Display the result in the elements
+            daysEl.innerHTML = formatTime(days);
+            hoursEl.innerHTML = formatTime(hours);
+            minutesEl.innerHTML = formatTime(minutes);
+            secondsEl.innerHTML = formatTime(seconds);
 
-        // Listen for other devices
-        function subscribeToPeers() {
-            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'presence');
-            onSnapshot(colRef, (snap) => {
-                const list = document.getElementById('peer-list');
-                list.innerHTML = '';
-                let found = false;
-
-                snap.forEach(d => {
-                    if (d.id !== currentUserId) {
-                        const data = d.data();
-                        // Filter out stale devices (over 30s)
-                        if (data.last_seen && (Date.now() - data.last_seen.toMillis() < 30000)) {
-                            found = true;
-                            const el = document.createElement('div');
-                            el.className = "peer-item bg-blue-50/50 border border-blue-100 p-4 rounded-3xl flex items-center justify-between shadow-sm";
-                            el.innerHTML = `
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-[10px]">
-                                        <i class="fas fa-mobile-screen"></i>
-                                    </div>
-                                    <span class="text-[11px] font-bold text-slate-700">${data.deviceName}</span>
-                                </div>
-                                <button class="bg-blue-600 text-white text-[9px] font-black px-4 py-2 rounded-xl btn-active" onclick="window.requestTransfer('${d.id}', '${data.deviceName}')">
-                                    ՈՒՂԱՐԿԵԼ ՑԱՆԿԸ
-                                </button>
-                            `;
-                            list.appendChild(el);
-                        }
-                    }
-                });
-
-                if (!found) {
-                    list.innerHTML = `<div class="text-center py-6 text-[10px] text-slate-300 font-bold uppercase tracking-tight">Այլ սարքեր չկան</div>`;
-                }
-            });
-        }
-
-        // Listen for incoming data
-        function subscribeToTransfers() {
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'transfers', currentUserId);
-            onSnapshot(docRef, async (snap) => {
-                if (snap.exists()) {
-                    const payload = snap.data();
-                    if (confirm("Դուք ստացել եք հեռախոսագիրք մեկ այլ սարքից: Միացնե՞լ ձեր ցանկին:")) {
-                        const incoming = JSON.parse(payload.data);
-                        contacts = [...contacts, ...incoming];
-                        saveLocal();
-                        renderList();
-                    }
-                    await deleteDoc(docRef);
-                }
-            });
-        }
-
-        // UI Handlers
-        window.requestTransfer = (id, name) => {
-            targetPeerId = id;
-            document.getElementById('modal-text').innerText = `Ուղարկել ձեր ամբողջ հեռախոսագիրքը (${contacts.length} կոնտակտ) ${name}-ին:`;
-            document.getElementById('modal').classList.remove('hidden');
-        };
-
-        document.getElementById('confirm-btn').onclick = async () => {
-            if (!targetPeerId || contacts.length === 0) {
-                document.getElementById('modal').classList.add('hidden');
-                return;
-            }
-            const transferRef = doc(db, 'artifacts', appId, 'public', 'data', 'transfers', targetPeerId);
-            await setDoc(transferRef, {
-                from: currentUserId,
-                data: JSON.stringify(contacts),
-                timestamp: serverTimestamp()
-            });
-            document.getElementById('modal').classList.add('hidden');
-            alert("Ուղարկված է:");
-        };
-
-        document.getElementById('cancel-btn').onclick = () => document.getElementById('modal').classList.add('hidden');
-
-        // CRUD Logic
-        function saveLocal() {
-            localStorage.setItem('ps_contacts_v2', JSON.stringify(contacts));
-        }
-
-        function renderList() {
-            const container = document.getElementById('contact-list');
-            document.getElementById('counter').innerText = contacts.length;
-            
-            if (contacts.length === 0) {
-                container.innerHTML = `<div class="text-center py-12 bg-white rounded-[2rem] border border-dashed border-slate-200 text-slate-300 text-[10px] font-bold uppercase tracking-widest">Դատարկ է</div>`;
-                return;
-            }
-
-            container.innerHTML = contacts.map((c, i) => `
-                <div class="bg-white p-4 rounded-3xl flex items-center justify-between border border-slate-50 shadow-sm">
-                    <div class="flex items-center gap-4">
-                        <div class="bg-slate-50 text-slate-400 h-10 w-10 rounded-xl flex items-center justify-center font-black">${(c.name || "?")[0].toUpperCase()}</div>
-                        <div>
-                            <div class="font-bold text-sm text-slate-800 tracking-tight">${c.name}</div>
-                            <div class="text-[10px] text-slate-400 font-bold">${c.phone}</div>
-                        </div>
+            // If the countdown is finished, display a message
+            if (distance < 0) {
+                clearInterval(countdownInterval);
+                document.getElementById("countdown").innerHTML = `
+                    <div class="col-span-2 sm:col-span-4 text-2xl md:text-3xl font-bold p-6 bg-green-500/20 rounded-lg">
+                        We are back online!
                     </div>
-                    <button onclick="window.delContact(${i})" class="text-slate-200 hover:text-red-500 p-2"><i class="fas fa-trash-alt text-xs"></i></button>
-                </div>
-            `).join('');
-        }
-
-        window.delContact = (i) => { contacts.splice(i, 1); saveLocal(); renderList(); };
-
-        document.getElementById('add-btn').onclick = () => {
-            const n = document.getElementById('name-in');
-            const p = document.getElementById('phone-in');
-            if (!n.value || !p.value) return;
-            contacts.push({ name: n.value, phone: p.value });
-            n.value = ''; p.value = ''; saveLocal(); renderList();
-        };
-
-        // Export/Import
-        document.getElementById('vcf-export').onclick = () => {
-            if (contacts.length === 0) return;
-            const content = contacts.map(c => `BEGIN:VCARD\nVERSION:3.0\nFN:${c.name}\nTEL:${c.phone}\nEND:VCARD`).join('\n');
-            const blob = new Blob([content], { type: 'text/vcard' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'PhoneSync_Backup.vcf';
-            a.click();
-        };
-
-        document.getElementById('vcf-import').onchange = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                const cards = ev.target.result.split('BEGIN:VCARD');
-                cards.forEach(card => {
-                    const fn = card.match(/FN:(.*)/);
-                    const tel = card.match(/TEL.*:(.*)/);
-                    if (fn && tel) contacts.push({ name: fn[1].trim(), phone: tel[1].trim() });
-                });
-                saveLocal(); renderList();
-            };
-            reader.readAsText(file);
-        };
+                `;
+            }
+        }, 1000);
     </script>
+
 </body>
 </html>
 
