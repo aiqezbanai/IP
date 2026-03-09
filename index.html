@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PhoneSync - VCF Կառավարիչ</title>
+    <title>PhoneSync Sync & Share</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -12,284 +12,273 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
         
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-            -webkit-text-size-adjust: 100%;
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; -webkit-text-size-adjust: 100%;
             touch-action: manipulation;
         }
 
-        #app-container {
-            height: 100%;
-            overflow-y: auto;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
+        #app-scroller {
+            height: 100%; overflow-y: auto; overflow-x: hidden;
+            display: flex; flex-direction: column;
             -webkit-overflow-scrolling: touch;
         }
 
         input { font-size: 16px !important; }
-
         .btn-active:active { transform: scale(0.96); }
-        
-        .contact-anim {
-            animation: slideUp 0.3s ease-out forwards;
-        }
+        .peer-card { animation: slideUp 0.4s ease-out; }
 
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        #app-container::-webkit-scrollbar { width: 0; display: none; }
+        #app-scroller::-webkit-scrollbar { width: 0; display: none; }
     </style>
 </head>
 <body class="text-slate-900">
 
-    <div id="app-container">
-        <!-- Header -->
+    <div id="app-scroller">
         <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shrink-0">
             <div class="max-w-md mx-auto px-5 py-4 flex justify-between items-center">
                 <div class="flex items-center gap-2">
                     <div class="bg-blue-600 w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-lg">
-                        <i class="fas fa-file-export text-sm"></i>
+                        <i class="fas fa-wifi text-sm"></i>
                     </div>
                     <span class="font-black text-slate-800 tracking-tighter text-xl uppercase">PhoneSync</span>
                 </div>
-                <div class="text-[9px] font-black px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 uppercase tracking-widest border border-blue-100">
-                    VCF v3.0
+                <div id="status-tag" class="text-[9px] font-black px-3 py-1.5 rounded-full bg-slate-100 text-slate-400 uppercase tracking-widest">
+                    Որոնում...
                 </div>
             </div>
         </header>
 
         <main class="max-w-md mx-auto w-full px-5 py-6 flex-grow">
-            <!-- Main Actions -->
+            <!-- Storage Card -->
             <div class="bg-slate-900 rounded-[2.5rem] p-7 text-white mb-8 shadow-2xl relative overflow-hidden">
                 <div class="relative z-10">
-                    <h2 class="text-2xl font-bold mb-1">Կոնտակտների Փոխարկիչ</h2>
-                    <p class="text-slate-400 text-[11px] mb-6 font-medium uppercase tracking-wider">Ստեղծեք ստանդարտ .vcf ֆայլեր</p>
+                    <h2 class="text-2xl font-bold mb-1">Հեռախոսագիրք</h2>
+                    <p class="text-slate-400 text-[11px] mb-6 font-medium uppercase tracking-wider">Տվյալները պահպանված են</p>
                     
                     <div class="grid grid-cols-2 gap-3">
                         <label class="bg-white/10 hover:bg-white/15 py-4 rounded-2xl text-[11px] font-bold text-center cursor-pointer transition-all border border-white/5 flex items-center justify-center gap-2 btn-active">
                             <i class="fas fa-file-import opacity-70"></i> Ներմուծել
-                            <input type="file" id="vcf-import-input" accept=".vcf" class="hidden">
+                            <input type="file" id="vcf-import" accept=".vcf" class="hidden">
                         </label>
-                        <button id="vcf-export-button" class="bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl text-[11px] font-bold shadow-lg shadow-blue-900/50 btn-active transition-all flex items-center justify-center gap-2">
+                        <button id="vcf-export" class="bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl text-[11px] font-bold shadow-lg shadow-blue-900/50 btn-active transition-all flex items-center justify-center gap-2">
                             <i class="fas fa-download"></i> Արտահանել
                         </button>
                     </div>
                 </div>
-                <i class="fas fa-id-badge absolute -right-6 -bottom-6 text-white/5 text-[10rem] rotate-12"></i>
+                <i class="fas fa-database absolute -right-6 -bottom-6 text-white/5 text-[10rem] rotate-12"></i>
             </div>
 
-            <!-- Add New Section -->
+            <!-- Manual Add -->
             <section class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 mb-8">
-                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5">Ավելացնել ցանկում</h3>
                 <div class="space-y-4">
-                    <div class="relative">
-                        <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
-                        <input type="text" id="contact-name" placeholder="Անուն Ազգանուն" 
-                            class="w-full bg-slate-50 pl-10 pr-4 py-4 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500/10 focus:bg-white transition-all text-sm font-medium">
-                    </div>
-                    <div class="relative">
-                        <i class="fas fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
-                        <input type="tel" id="contact-phone" placeholder="+374 __ ___ ___" 
-                            class="w-full bg-slate-50 pl-10 pr-4 py-4 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500/10 focus:bg-white transition-all text-sm font-medium">
-                    </div>
-                    <button id="add-to-list-btn" class="w-full bg-slate-800 text-white py-4.5 rounded-2xl font-bold text-sm btn-active shadow-xl shadow-slate-200 flex items-center justify-center gap-2 py-4">
-                        <i class="fas fa-plus-circle"></i> Ավելացնել
+                    <input type="text" id="name-in" placeholder="Անուն Ազգանուն" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500/10 text-sm font-medium">
+                    <input type="tel" id="phone-in" placeholder="+374 __ ___ ___" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500/10 text-sm font-medium">
+                    <button id="add-btn" class="w-full bg-slate-800 text-white py-4 rounded-2xl font-bold text-sm btn-active flex items-center justify-center gap-2">
+                        <i class="fas fa-plus"></i> Ավելացնել
                     </button>
                 </div>
             </section>
 
-            <!-- Counter and List -->
             <div class="flex justify-between items-center mb-5 px-2">
-                <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Ընթացիկ Ցուցակ</span>
-                <span id="contact-counter" class="text-[10px] font-black bg-blue-600 text-white px-3 py-1 rounded-full">0</span>
+                <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Կոնտակտներ</span>
+                <span id="counter" class="text-[10px] font-black bg-blue-600 text-white px-3 py-1 rounded-full">0</span>
             </div>
 
-            <div id="contact-list-display" class="space-y-3 pb-12">
-                <!-- Data Placeholder -->
-            </div>
+            <div id="contact-list" class="space-y-3 pb-24"></div>
         </main>
     </div>
 
-    <!-- Success Feedback Toast -->
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-full text-xs font-bold shadow-2xl opacity-0 translate-y-10 transition-all duration-300 z-[100] pointer-events-none">
-        <i class="fas fa-check-circle mr-2"></i> <span id="toast-msg">Պահպանված է</span>
+    <!-- Peer Discovery Overlay -->
+    <div id="peer-overlay" class="fixed bottom-6 left-5 right-5 z-[100] pointer-events-none">
+        <div id="peer-list" class="flex flex-col gap-2 pointer-events-auto"></div>
     </div>
 
-    <script>
-        // Local state management
-        let contactData = [];
+    <!-- Confirmation Modal -->
+    <div id="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] hidden flex items-center justify-center p-6">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-xs p-8 text-center shadow-2xl">
+            <div class="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center text-blue-600 mx-auto mb-4">
+                <i class="fas fa-paper-plane text-2xl"></i>
+            </div>
+            <h3 class="font-black text-slate-800 text-lg mb-2">Ուղարկե՞լ</h3>
+            <p id="modal-text" class="text-slate-500 text-xs mb-8">Ուղարկել հեռախոսագիրքը այս սարքին:</p>
+            <div class="flex flex-col gap-2">
+                <button id="confirm-btn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-sm btn-active">ԱՅՈ</button>
+                <button id="cancel-btn" class="w-full bg-slate-100 text-slate-500 py-4 rounded-2xl font-bold text-sm btn-active">ՈՉ</button>
+            </div>
+        </div>
+    </div>
 
-        // UI elements
-        const nameInput = document.getElementById('contact-name');
-        const phoneInput = document.getElementById('contact-phone');
-        const listDisplay = document.getElementById('contact-list-display');
-        const counter = document.getElementById('contact-counter');
-        const toast = document.getElementById('toast');
-        const toastMsg = document.getElementById('toast-msg');
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, query, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Render the list
-        function updateUI() {
-            counter.innerText = contactData.length;
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'phonesync-net-final';
 
-            if (contactData.length === 0) {
-                listDisplay.innerHTML = `
-                    <div class="text-center py-16 bg-white rounded-[2.5rem] border border-dashed border-slate-200">
-                        <i class="fas fa-address-book text-slate-100 text-6xl mb-4"></i>
-                        <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest">Ցանկը դատարկ է</p>
-                    </div>`;
-                return;
-            }
+        let contacts = JSON.parse(localStorage.getItem('ps_contacts')) || [];
+        let currentUserId = null;
+        let selectedPeerId = null;
 
-            // Sort alphabetical
-            contactData.sort((a, b) => a.name.localeCompare(b.name));
+        // 1. Init & Persistence
+        window.addEventListener('load', () => {
+            initAuth();
+            renderList();
+        });
 
-            listDisplay.innerHTML = '';
-            contactData.forEach((contact, idx) => {
-                const item = document.createElement('div');
-                item.className = "contact-anim bg-white p-4.5 rounded-3xl flex items-center justify-between shadow-sm border border-slate-50";
-                item.innerHTML = `
-                    <div class="flex items-center gap-4">
-                        <div class="bg-blue-50 text-blue-600 h-11 w-11 rounded-2xl flex items-center justify-center font-black text-lg">
-                            ${(contact.name || "?")[0].toUpperCase()}
-                        </div>
-                        <div>
-                            <div class="font-bold text-sm text-slate-800 tracking-tight">${contact.name}</div>
-                            <div class="text-[10px] text-slate-400 font-bold tracking-wider mt-0.5">${contact.phone}</div>
-                        </div>
-                    </div>
-                    <button class="delete-btn text-slate-200 hover:text-red-500 w-10 h-10 flex items-center justify-center transition-colors" data-idx="${idx}">
-                        <i class="fas fa-trash-alt text-xs"></i>
-                    </button>
-                `;
-                item.querySelector('.delete-btn').onclick = () => deleteEntry(idx);
-                listDisplay.appendChild(item);
-            });
-        }
-
-        // Add contact to local array
-        function addEntry() {
-            const name = nameInput.value.trim();
-            const phone = phoneInput.value.trim();
-
-            if (!name || !phone) {
-                nameInput.classList.add('border-red-200');
-                setTimeout(() => nameInput.classList.remove('border-red-200'), 800);
-                return;
-            }
-
-            contactData.push({ name, phone });
-            nameInput.value = '';
-            phoneInput.value = '';
-            nameInput.focus();
-            
-            showToast("Ավելացվեց ցանկում");
-            updateUI();
-        }
-
-        // Remove from local array
-        function deleteEntry(idx) {
-            contactData.splice(idx, 1);
-            updateUI();
-        }
-
-        // Core VCF Export Logic
-        function exportVCF() {
-            if (contactData.length === 0) {
-                showToast("Ցանկը դատարկ է", true);
-                return;
-            }
-
-            // Generate vCard string following vCard 3.0 standards
-            let vCardContent = "";
-            contactData.forEach(c => {
-                vCardContent += "BEGIN:VCARD\n";
-                vCardContent += "VERSION:3.0\n";
-                vCardContent += `FN:${c.name}\n`;
-                vCardContent += `N:;${c.name};;;\n`; // Simplified N format
-                vCardContent += `TEL;TYPE=CELL:${c.phone}\n`;
-                vCardContent += "END:VCARD\n";
-            });
-
-            // Create blob and download link
-            const blob = new Blob([vCardContent], { type: 'text/vcard;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            
-            // Format filename with current date
-            const dateStr = new Date().toISOString().slice(0, 10);
-            link.href = url;
-            link.download = `PhoneSync_Contacts_${dateStr}.vcf`;
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            URL.revokeObjectURL(url);
-            showToast("Ֆայլը պատրաստ է");
-        }
-
-        // VCF Import Parser
-        function importVCF(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                const vCards = text.split('BEGIN:VCARD');
-                let importCount = 0;
-
-                vCards.forEach(card => {
-                    if (!card.includes('END:VCARD')) return;
-                    
-                    // Basic Regex for FN and TEL
-                    const fnMatch = card.match(/FN:(.*)/);
-                    const telMatch = card.match(/TEL.*:(.*)/);
-                    
-                    if (fnMatch && telMatch) {
-                        contactData.push({
-                            name: fnMatch[1].trim().replace(/\r/g, ''),
-                            phone: telMatch[1].trim().replace(/\r/g, '')
-                        });
-                        importCount++;
+        async function initAuth() {
+            try {
+                await signInAnonymously(auth);
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                        document.getElementById('status-tag').innerText = "ԱՌՑԱՆՑ";
+                        document.getElementById('status-tag').classList.replace('text-slate-400', 'text-green-600');
+                        document.getElementById('status-tag').classList.replace('bg-slate-100', 'bg-green-50');
+                        presenceHeartbeat();
+                        listenForPeers();
+                        listenForIncoming();
                     }
                 });
-                
-                showToast(`${importCount} կոնտակտ ներմուծվեց`);
-                updateUI();
+            } catch (e) { console.error(e); }
+        }
+
+        // 2. Presence & Peer Discovery
+        async function presenceHeartbeat() {
+            const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'online_users', currentUserId);
+            await setDoc(userRef, { last_seen: serverTimestamp(), name: "Սարք " + currentUserId.slice(-4) });
+            setTimeout(presenceHeartbeat, 15000); // 15 sec heartbeat
+        }
+
+        function listenForPeers() {
+            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'online_users');
+            onSnapshot(colRef, (snap) => {
+                const list = document.getElementById('peer-list');
+                list.innerHTML = '';
+                snap.forEach(d => {
+                    if (d.id !== currentUserId) {
+                        const peer = d.data();
+                        const card = document.createElement('div');
+                        card.className = "peer-card bg-white p-4 rounded-3xl shadow-xl border border-blue-100 flex items-center justify-between pointer-events-auto";
+                        card.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <div class="bg-blue-600 w-2 h-2 rounded-full animate-pulse"></div>
+                                <span class="text-[10px] font-black text-slate-800 uppercase">${peer.name}</span>
+                            </div>
+                            <button class="text-[10px] font-black bg-blue-600 text-white px-4 py-2 rounded-xl btn-active share-trigger" data-id="${d.id}">ՈՒՂԱՐԿԵԼ</button>
+                        `;
+                        card.querySelector('.share-trigger').onclick = () => openModal(d.id, peer.name);
+                        list.appendChild(card);
+                    }
+                });
+            });
+        }
+
+        // 3. Messaging (Transfer)
+        function openModal(peerId, peerName) {
+            selectedPeerId = peerId;
+            document.getElementById('modal-text').innerText = `Ուղարկել հեռախոսագիրքը ${peerName}-ին:`;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        document.getElementById('confirm-btn').onclick = async () => {
+            if (!selectedPeerId) return;
+            const transferRef = doc(db, 'artifacts', appId, 'public', 'data', 'transfers', selectedPeerId);
+            await setDoc(transferRef, {
+                from: currentUserId,
+                data: JSON.stringify(contacts),
+                ts: serverTimestamp()
+            });
+            document.getElementById('modal').classList.add('hidden');
+        };
+
+        document.getElementById('cancel-btn').onclick = () => document.getElementById('modal').classList.add('hidden');
+
+        function listenForIncoming() {
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'transfers', currentUserId);
+            onSnapshot(docRef, async (snap) => {
+                if (snap.exists()) {
+                    const payload = snap.data();
+                    if (confirm("Դուք ստացել եք նոր հեռախոսագիրք: Միացնե՞լ ձեր ցանկին:")) {
+                        const newContacts = JSON.parse(payload.data);
+                        contacts = [...contacts, ...newContacts];
+                        saveToLocal();
+                        renderList();
+                    }
+                    await deleteDoc(docRef);
+                }
+            });
+        }
+
+        // 4. Local CRUD
+        function saveToLocal() {
+            localStorage.setItem('ps_contacts', JSON.stringify(contacts));
+        }
+
+        function renderList() {
+            const container = document.getElementById('contact-list');
+            document.getElementById('counter').innerText = contacts.length;
+            if (contacts.length === 0) {
+                container.innerHTML = `<div class="text-center py-20 bg-white rounded-[2.5rem] border border-dashed border-slate-200 text-slate-300 text-[10px] font-bold uppercase">Դատարկ է</div>`;
+                return;
+            }
+            container.innerHTML = contacts.map((c, i) => `
+                <div class="bg-white p-4 rounded-3xl flex items-center justify-between border border-slate-50 shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-blue-50 text-blue-600 h-10 w-10 rounded-xl flex items-center justify-center font-black">${c.name[0].toUpperCase()}</div>
+                        <div>
+                            <div class="font-bold text-sm text-slate-800">${c.name}</div>
+                            <div class="text-[10px] text-slate-400 font-bold">${c.phone}</div>
+                        </div>
+                    </div>
+                    <button onclick="window.delEntry(${i})" class="text-slate-200 hover:text-red-500 px-2"><i class="fas fa-trash-alt text-xs"></i></button>
+                </div>
+            `).join('');
+        }
+
+        window.delEntry = (i) => { contacts.splice(i, 1); saveToLocal(); renderList(); };
+
+        document.getElementById('add-btn').onclick = () => {
+            const n = document.getElementById('name-in');
+            const p = document.getElementById('phone-in');
+            if (!n.value || !p.value) return;
+            contacts.push({ name: n.value, phone: p.value });
+            n.value = ''; p.value = ''; saveToLocal(); renderList();
+        };
+
+        // 5. VCF Logic
+        document.getElementById('vcf-export').onclick = () => {
+            if (contacts.length === 0) return;
+            const vcf = contacts.map(c => `BEGIN:VCARD\nVERSION:3.0\nFN:${c.name}\nTEL:${c.phone}\nEND:VCARD`).join('\n');
+            const blob = new Blob([vcf], { type: 'text/vcard' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'contacts.vcf'; a.click();
+        };
+
+        document.getElementById('vcf-import').onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const cards = ev.target.result.split('BEGIN:VCARD');
+                cards.forEach(card => {
+                    const fn = card.match(/FN:(.*)/);
+                    const tel = card.match(/TEL.*:(.*)/);
+                    if (fn && tel) contacts.push({ name: fn[1].trim(), phone: tel[1].trim() });
+                });
+                saveToLocal(); renderList();
             };
             reader.readAsText(file);
-            event.target.value = ''; // Reset input for repeated imports
-        }
-
-        // Feedback notification
-        function showToast(msg, isError = false) {
-            toastMsg.innerText = msg;
-            toast.style.backgroundColor = isError ? '#ef4444' : '#16a34a';
-            toast.classList.replace('opacity-0', 'opacity-100');
-            toast.classList.replace('translate-y-10', 'translate-y-0');
-            
-            setTimeout(() => {
-                toast.classList.replace('opacity-100', 'opacity-0');
-                toast.classList.replace('translate-y-0', 'translate-y-10');
-            }, 2000);
-        }
-
-        // Bind events
-        document.getElementById('add-to-list-btn').onclick = addEntry;
-        document.getElementById('vcf-export-button').onclick = exportVCF;
-        document.getElementById('vcf-import-input').onchange = importVCF;
-
-        // Initialize display
-        updateUI();
+        };
     </script>
 </body>
 </html>
