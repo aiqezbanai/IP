@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PhoneSync - Local Edition</title>
+    <title>PhoneSync - Կոնտակտների տեղափոխում</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -61,7 +61,7 @@
                     <span class="font-black text-slate-800 tracking-tighter text-xl">PhoneSync</span>
                 </div>
                 <div class="text-[9px] font-bold px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 uppercase tracking-widest">
-                    Լոկալ Ռեժիմ
+                    Տեղական Ռեժիմ
                 </div>
             </div>
         </header>
@@ -90,9 +90,9 @@
             <section class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 mb-8">
                 <h3 class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-5">Ավելացնել նոր կոնտակտ</h3>
                 <div class="space-y-4">
-                    <input type="text" id="inp-name" placeholder="Անուն Ազգանուն" 
+                    <input type="text" id="inp-name" placeholder="Անվանում" 
                         class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-2 border-transparent focus:border-indigo-500/10 focus:bg-white transition-all text-sm">
-                    <input type="tel" id="inp-phone" placeholder="+374 __ ___ ___" 
+                    <input type="tel" id="inp-phone" placeholder="+374 XX XXX XXX" 
                         class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-2 border-transparent focus:border-indigo-500/10 focus:bg-white transition-all text-sm">
                     <button id="add-btn" class="w-full bg-slate-900 text-white py-4.5 rounded-2xl font-bold text-sm btn-press shadow-xl flex items-center justify-center gap-2 py-4">
                         <i class="fas fa-user-plus"></i> Ավելացնել Ցանկում
@@ -102,7 +102,7 @@
 
             <!-- List Section -->
             <div class="flex justify-between items-center mb-5 px-1">
-                <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Ընթացիկ Ցուցակ</span>
+                <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Ընթացիկ Ցանկ</span>
                 <span id="badge-count" class="text-[10px] font-black bg-indigo-600 text-white px-3 py-1 rounded-full">0</span>
             </div>
 
@@ -113,7 +113,7 @@
     </div>
 
     <script>
-        // Տվյալների պահպանման լոկալ զանգված
+        // Տվյալների պահպանման տեղական զանգված
         let contacts = [];
 
         // Էլեմենտների հղումները
