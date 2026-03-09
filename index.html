@@ -1,262 +1,247 @@
 <!DOCTYPE html>
 <html lang="hy">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ARIA Converter | File Transformation Tool</title>
-<style>
-:root {
-  --primary: #2a63ff;
-  --secondary: #f1f1f1;
-  --bg: #fff;
-  --text: #222;
-  --radius: 10px;
-}
-body {
-  font-family: "Segoe UI", sans-serif;
-  margin: 0;
-  padding: 0;
-  background: var(--secondary);
-  color: var(--text);
-}
-header {
-  background: var(--primary);
-  color: #fff;
-  padding: 15px 25px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-header h1 {
-  margin: 0;
-  font-size: 1.4rem;
-}
-button {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 10px 18px;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: 0.3s;
-}
-button:hover {
-  background: #1f4de3;
-}
-.container {
-  max-width: 900px;
-  margin: 30px auto;
-  background: var(--bg);
-  padding: 30px;
-  border-radius: var(--radius);
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-input[type=file], select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: var(--radius);
-  margin-bottom: 15px;
-}
-.info-box {
-  background: #f9f9f9;
-  padding: 15px;
-  border-radius: var(--radius);
-  margin-top: 10px;
-}
-footer {
-  background: #222;
-  color: #fff;
-  text-align: center;
-  padding: 20px;
-  font-size: 0.9rem;
-  margin-top: 50px;
-}
-footer a {
-  color: #00c8ff;
-  text-decoration: none;
-}
-@media (max-width: 768px) {
-  .container { margin: 10px; padding: 15px; }
-  header h1 { font-size: 1.1rem; }
-}
-#adminPanel {
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.8);
-  justify-content: center; align-items: center;
-}
-#adminContent {
-  background: #fff;
-  padding: 25px;
-  border-radius: var(--radius);
-  max-width: 500px;
-  width: 90%;
-}
-input[type=password], input[type=text] {
-  width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: var(--radius);
-}
-.ban-list { font-size: 0.9rem; margin-top: 10px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhoneSync - Կոնտակտների Անվտանգ Տեղափոխում</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .contact-card { transition: all 0.2s ease; }
+        .contact-card:active { transform: scale(0.98); }
+        .loader {
+            border-top-color: #3b82f6;
+            animation: spinner 1.5s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-<body>
-<header>
-  <h1>ARIA Converter</h1>
-  <button id="adminLoginBtn">Մուտք (Admin)</button>
-</header>
+<body class="bg-slate-50 text-slate-900 min-h-screen pb-24">
 
-<div class="container">
-  <h2>Փոխակերպման Գործիք</h2>
-  <input type="file" id="fileInput" />
-  <select id="formatSelect">
-    <option value="">Ընտրեք փոխակերպման ձևաչափը</option>
-    <option>PDF → DOCX</option>
-    <option>PDF → PNG</option>
-    <option>PDF → JPG</option>
-    <option>PDF → XLSX</option>
-    <option>XLSX → PDF</option>
-    <option>XLSX → DOCX</option>
-    <option>DOCX → XLSX</option>
-    <option>OCR PDF (Հայերեն, Ռուսերեն, Անգլերեն)</option>
-  </select>
-  <div class="info-box" id="fileInfo">Ֆայլի տեղեկություն դեռ չկա</div>
-  <button id="convertBtn">Փոխարկել և ներբեռնել .ZIP</button>
-</div>
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-md mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="bg-blue-600 p-2 rounded-xl text-white shadow-lg shadow-blue-200">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <h1 class="text-xl font-bold tracking-tight">PhoneSync</h1>
+            </div>
+            <div id="connection-status" class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-3 py-1.5 rounded-full">
+                <span class="h-2 w-2 rounded-full bg-slate-300"></span>
+                Ստուգում...
+            </div>
+        </div>
+    </header>
 
-<!-- Admin Panel -->
-<div id="adminPanel">
-  <div id="adminContent">
-    <h3>Admin Panel - ARIA Converter</h3>
-    <div id="adminLoginSection">
-      <input type="text" id="username" placeholder="Մուտքանուն"><br><br>
-      <input type="password" id="password" placeholder="Գաղտնաբառ"><br><br>
-      <button id="loginBtn">Մուտք</button>
+    <main class="max-w-md mx-auto px-4 py-6">
+        <!-- Dashboard Card -->
+        <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-6 rounded-3xl mb-8 shadow-xl relative overflow-hidden">
+            <div class="relative z-10">
+                <h2 class="text-2xl font-bold mb-1">Արագ Տեղափոխում</h2>
+                <p class="opacity-80 text-sm leading-relaxed mb-4">Վերբեռնեք կոնտակտները մեկ սարքից և ներբեռնեք մյուսով:</p>
+                <div class="flex gap-2">
+                    <label class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium backdrop-blur-md cursor-pointer transition-all">
+                        <i class="fas fa-file-import mr-2"></i> Վերբեռնել VCF
+                        <input type="file" id="vcf-upload" accept=".vcf" class="hidden">
+                    </label>
+                    <button onclick="downloadVCF()" id="download-btn" class="bg-white text-blue-600 px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50">
+                        <i class="fas fa-file-export mr-2"></i> Ներբեռնել
+                    </button>
+                </div>
+            </div>
+            <i class="fas fa-mobile-alt absolute -right-4 -bottom-4 opacity-10 text-9xl"></i>
+        </div>
+
+        <!-- Add Manual Contact -->
+        <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-8">
+            <h3 class="text-[11px] font-bold mb-4 text-slate-400 uppercase tracking-[0.2em]">Ավելացնել Ձեռքով</h3>
+            <div class="space-y-3">
+                <div class="relative">
+                    <i class="fas fa-user absolute left-4 top-3.5 text-slate-300"></i>
+                    <input type="text" id="contact-name" placeholder="Անուն Ազգանուն" 
+                        class="w-full pl-11 pr-4 py-3 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all">
+                </div>
+                <div class="relative">
+                    <i class="fas fa-phone absolute left-4 top-3.5 text-slate-300"></i>
+                    <input type="tel" id="contact-phone" placeholder="Հեռախոսահամար" 
+                        class="w-full pl-11 pr-4 py-3 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all">
+                </div>
+                <button onclick="handleManualAdd()" class="w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-slate-800 transition-all active:scale-[0.99]">
+                    <i class="fas fa-plus-circle"></i> Ավելացնել Ցանկում
+                </button>
+            </div>
+        </section>
+
+        <!-- List Section -->
+        <section>
+            <div class="flex justify-between items-center mb-4 px-1">
+                <h3 class="font-bold text-lg text-slate-800">Հեռախոսագիրք</h3>
+                <span id="contact-count" class="bg-blue-100 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-md">0</span>
+            </div>
+            
+            <div id="contacts-container" class="space-y-3">
+                <!-- Contacts will be injected here -->
+                <div class="text-center py-20 opacity-40">
+                    <i class="fas fa-address-book text-4xl mb-3"></i>
+                    <p class="text-sm">Ցանկը դատարկ է</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Global Progress Bar -->
+    <div id="sync-indicator" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-full text-xs font-bold shadow-2xl flex items-center gap-3 hidden">
+        <div class="loader ease-linear rounded-full border-2 border-t-2 border-gray-600 h-3 w-3"></div>
+        Սինխրոնացում...
     </div>
-    <div id="adminMain" style="display:none;">
-      <p><b>IP արգելափակում</b></p>
-      <input type="text" id="ipInput" placeholder="Օգտվողի IP հասցե">
-      <select id="banDuration">
-        <option value="1">1 օր</option>
-        <option value="3">3 օր</option>
-        <option value="5">5 օր</option>
-        <option value="7">7 օր</option>
-        <option value="10">10 օր</option>
-        <option value="15">15 օր</option>
-        <option value="30">30 օր</option>
-      </select>
-      <button id="banBtn">Արգելափակել</button>
-      <div class="ban-list" id="banList"></div>
-      <button id="logoutBtn" style="margin-top:10px;">Դուրս գալ</button>
-    </div>
-  </div>
-</div>
 
-<footer>
-  Copyright © | 
-  <a href="https://github.com/ariadevelopmentgroup/AriaConverter" target="_blank">
-    Aria Development Group
-  </a> | Հեղինակային բոլոր իրավունքները պաշտպանված են:
-</footer>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
-<script>
-// === Utility functions ===
-function getIP() {
-  return '192.168.1.' + Math.floor(Math.random() * 255); // mock IP
-}
-function getDate() {
-  const d = new Date();
-  return `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}`;
-}
+        // Firebase Setup
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'phone-sync-app';
 
-// === File info extraction (Mock) ===
-document.getElementById('fileInput').addEventListener('change', e=>{
-  const f = e.target.files[0];
-  if(!f) return;
-  document.getElementById('fileInfo').innerHTML = `
-    <b>Ֆայլի անվանում:</b> ${f.name}<br>
-    <b>Չափս:</b> ${(f.size/1024).toFixed(2)} KB<br>
-    <b>Էջերի քանակ:</b> ${Math.floor(Math.random()*10+1)}<br>
-    <b>Նվազագույն DPI:</b> ${Math.floor(Math.random()*100+150)}<br>
-    <b>Միջին DPI:</b> ${Math.floor(Math.random()*100+200)}<br>
-    <b>Առավելագույն DPI:</b> ${Math.floor(Math.random()*100+300)}
-  `;
-});
+        let currentUser = null;
+        let localContacts = [];
 
-// === Convert & ZIP ===
-document.getElementById('convertBtn').addEventListener('click', async ()=>{
-  const f = document.getElementById('fileInput').files[0];
-  const format = document.getElementById('formatSelect').value;
-  if(!f || !format){ alert('Խնդրում ենք ընտրել ֆայլ և ձևաչափ'); return; }
-  const zip = new JSZip();
-  zip.file(`Converted_${f.name}`, "Converted File Content (Demo)");
-  const blob = await zip.generateAsync({type:"blob"});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `ARIA-CONVERTER__${getDate()}.zip`;
-  a.click();
-});
+        // Auth Logic
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) { console.error(e); }
+        };
 
-// === Admin Panel ===
-const adminPanel = document.getElementById('adminPanel');
-document.getElementById('adminLoginBtn').onclick=()=>adminPanel.style.display='flex';
-adminPanel.onclick=e=>{if(e.target===adminPanel) adminPanel.style.display='none';}
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            const statusEl = document.getElementById('connection-status');
+            if (user) {
+                statusEl.innerHTML = '<span class="h-2 w-2 rounded-full bg-green-500"></span> Միացված է';
+                statusEl.classList.replace('text-slate-400', 'text-green-600');
+                startSync();
+            }
+        });
 
-const SHA512 = async msg => {
-  const buf = await crypto.subtle.digest("SHA-512", new TextEncoder().encode(msg));
-  return Array.from(new Uint8Array(buf)).map(x=>x.toString(16).padStart(2,"0")).join("");
-};
-const storedUser = "ACAdmin";
-const storedHash = "d7a7b4600d20b3f2e91e6d15c692df221c91c02d4e153bc62f8f869adf7fbe9de3e1bfc66b8f871e2eb40d8f477d26eebac9321b20d0a26a282a2bb0fbd962d3"; // SHA-512 of Admin20252026#AC!13
+        // Sync Logic (Real-time)
+        function startSync() {
+            const syncEl = document.getElementById('sync-indicator');
+            const contactsRef = collection(db, 'artifacts', appId, 'public', 'data', 'shared_phonebook');
+            
+            onSnapshot(contactsRef, (snapshot) => {
+                syncEl.classList.remove('hidden');
+                localContacts = [];
+                snapshot.forEach(doc => localContacts.push({ id: doc.id, ...doc.data() }));
+                renderContacts();
+                setTimeout(() => syncEl.classList.add('hidden'), 500);
+            }, (err) => {
+                console.error("Firestore Error:", err);
+            });
+        }
 
-document.getElementById('loginBtn').onclick=async ()=>{
-  const u=document.getElementById('username').value;
-  const p=document.getElementById('password').value;
-  const h=await SHA512(p);
-  if(u===storedUser && h===storedHash){
-    document.getElementById('adminLoginSection').style.display='none';
-    document.getElementById('adminMain').style.display='block';
-    localStorage.setItem('adminSession','true');
-    startLogoutTimer();
-    renderBans();
-  } else alert('Սխալ մուտքանուն կամ գաղտնաբառ');
-};
+        // Render UI
+        function renderContacts() {
+            const container = document.getElementById('contacts-container');
+            const countEl = document.getElementById('contact-count');
+            countEl.innerText = localContacts.length;
 
-document.getElementById('logoutBtn').onclick=()=>{
-  localStorage.removeItem('adminSession');
-  document.getElementById('adminMain').style.display='none';
-  document.getElementById('adminLoginSection').style.display='block';
-};
+            if (localContacts.length === 0) {
+                container.innerHTML = `<div class="text-center py-20 opacity-40"><i class="fas fa-address-book text-4xl mb-3"></i><p class="text-sm">Ցանկը դատարկ է</p></div>`;
+                return;
+            }
 
-// === Ban Management (LocalStorage demo) ===
-function renderBans(){
-  const bans=JSON.parse(localStorage.getItem('bans')||'[]');
-  const list=document.getElementById('banList');
-  list.innerHTML=bans.map(b=>`<div>IP: ${b.ip} | ${b.days} օր</div>`).join('') || 'Չկա արգելափակված IP';
-}
-document.getElementById('banBtn').onclick=()=>{
-  const ip=document.getElementById('ipInput').value||getIP();
-  const days=document.getElementById('banDuration').value;
-  const bans=JSON.parse(localStorage.getItem('bans')||'[]');
-  bans.push({ip,days});
-  localStorage.setItem('bans',JSON.stringify(bans));
-  renderBans();
-  alert(`IP ${ip} արգելափակվեց ${days} օրով`);
-};
+            container.innerHTML = localContacts.map(c => `
+                <div class="contact-card bg-white p-4 rounded-2xl flex items-center justify-between shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-blue-100 text-blue-600 h-11 w-11 rounded-xl flex items-center justify-center font-bold text-lg">
+                            ${c.name ? c.name[0].toUpperCase() : '?'}
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">${c.name}</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">${c.phone}</p>
+                        </div>
+                    </div>
+                    <button onclick="window.deleteContact('${c.id}')" class="text-slate-200 hover:text-red-500 p-2 transition-colors">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
 
-// === Inactivity auto logout ===
-let logoutTimer;
-function startLogoutTimer(){
-  clearTimeout(logoutTimer);
-  logoutTimer=setTimeout(()=>{
-    alert("Անգործություն 5 րոպե — ավտոմատ դուրս եկավ");
-    document.getElementById('logoutBtn').click();
-  },5*60*1000);
-}
-document.onmousemove=startLogoutTimer;
-document.onkeydown=startLogoutTimer;
-</script>
+        // Actions
+        window.handleManualAdd = async () => {
+            const name = document.getElementById('contact-name').value;
+            const phone = document.getElementById('contact-phone').value;
+            if (!name || !phone || !currentUser) return;
+
+            const id = Date.now().toString();
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'shared_phonebook', id), {
+                name, phone, createdAt: new Date().toISOString()
+            });
+            
+            document.getElementById('contact-name').value = '';
+            document.getElementById('contact-phone').value = '';
+        };
+
+        window.deleteContact = async (id) => {
+            if (!currentUser) return;
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'shared_phonebook', id));
+        };
+
+        window.downloadVCF = () => {
+            if (localContacts.length === 0) return;
+            let vcf = localContacts.map(c => `BEGIN:VCARD\nVERSION:3.0\nFN:${c.name}\nTEL:${c.phone}\nEND:VCARD`).join('\n');
+            const blob = new Blob([vcf], { type: 'text/vcard' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `PhoneSync_${new Date().toLocaleDateString()}.vcf`;
+            a.click();
+        };
+
+        // File Import Logic
+        document.getElementById('vcf-upload').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file || !currentUser) return;
+
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const content = event.target.result;
+                const vCards = content.split('BEGIN:VCARD');
+                
+                for (let card of vCards) {
+                    const nameMatch = card.match(/FN:(.*)/);
+                    const telMatch = card.match(/TEL:(.*)/);
+                    if (nameMatch && telMatch) {
+                        const id = Math.random().toString(36).substr(2, 9);
+                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'shared_phonebook', id), {
+                            name: nameMatch[1].trim(),
+                            phone: telMatch[1].trim().replace(/\r/g, ''),
+                            createdAt: new Date().toISOString()
+                        });
+                    }
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        initAuth();
+    </script>
 </body>
 </html>
+
