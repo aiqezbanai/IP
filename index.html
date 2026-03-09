@@ -2,285 +2,300 @@
 <html lang="hy">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhoneSync - Կոնտակտների Անվտանգ Տեղափոխում</title>
-    <!-- Tailwind CSS for styling -->
+    <!-- Արգելափակում ենք Zoom-ը և հորիզոնական scrolling-ը բջջայինների համար -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PhoneSync Pro - Անթերի Տարբերակ</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .contact-card { transition: transform 0.1s ease; }
-        .contact-card:active { transform: scale(0.97); }
-        .loader {
-            border-top-color: #3b82f6;
-            animation: spinner 1s linear infinite;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Արգելում ենք հիմնական էջի սքրոլը */
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            -webkit-text-size-adjust: 100%;
+            touch-action: manipulation;
         }
-        @keyframes spinner {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        /* Հիմնական կոնտեյներ, որը թույլ է տալիս միայն ուղղահայաց սքրոլ */
+        #safe-scroller {
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            -webkit-overflow-scrolling: touch;
         }
-        /* Custom scrollbar for better mobile feel */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+        /* Ուղղում ենք iOS-ի ավտոմատ Zoom-ը input-ների վրա */
+        input { font-size: 16px !important; }
+
+        .btn-press:active { transform: scale(0.97); }
+        
+        .contact-item {
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: rotate 0.7s linear infinite;
+        }
+
+        @keyframes rotate { to { transform: rotate(360deg); } }
+
+        /* Թաքցնում ենք սքրոլբարը գեղեցիկ տեսքի համար */
+        #safe-scroller::-webkit-scrollbar { width: 0; display: none; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+<body class="text-slate-900">
 
-    <!-- Header Section -->
-    <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-slate-100">
-        <div class="max-w-md mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="bg-blue-600 p-2.5 rounded-2xl text-white shadow-lg shadow-blue-200">
-                    <i class="fas fa-sync-alt text-lg"></i>
+    <div id="safe-scroller">
+        <!-- Գլխամաս -->
+        <header class="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-50 shrink-0">
+            <div class="max-w-md mx-auto px-5 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="bg-blue-600 w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                        <i class="fas fa-sync-alt text-sm"></i>
+                    </div>
+                    <span class="font-black text-slate-800 tracking-tighter text-xl">PhoneSync</span>
                 </div>
-                <div>
-                    <h1 class="text-lg font-bold leading-none">PhoneSync</h1>
-                    <p class="text-[10px] text-slate-400 font-medium uppercase tracking-tighter mt-1">Cloud Transfer</p>
+                <div id="connection-tag" class="text-[9px] font-bold px-3 py-1.5 rounded-full bg-slate-100 text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-slate-300 rounded-full animate-pulse"></span>
+                    Միանում է
                 </div>
             </div>
-            <div id="connection-status" class="flex items-center gap-2 text-[10px] font-bold uppercase bg-slate-100 px-3 py-1.5 rounded-full text-slate-500">
-                <span class="h-2 w-2 rounded-full bg-slate-300 animate-pulse"></span>
-                Միանում է...
-            </div>
-        </div>
-    </header>
+        </header>
 
-    <main class="max-w-md mx-auto w-full px-4 py-6 flex-grow">
-        <!-- Main Action Card -->
-        <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white p-6 rounded-[2.5rem] mb-8 shadow-2xl shadow-blue-200 relative overflow-hidden">
-            <div class="relative z-10">
-                <h2 class="text-2xl font-bold mb-2">Անլար Փոխանցում</h2>
-                <p class="opacity-80 text-xs leading-relaxed mb-6 max-w-[80%]">Վերբեռնեք կոնտակտները այստեղ, ապա բացեք նույն էջը մյուս հեռախոսով՝ ներբեռնելու համար:</p>
-                
-                <div class="flex items-center gap-3">
-                    <label class="flex-1 bg-white/20 hover:bg-white/30 px-4 py-3 rounded-2xl text-sm font-semibold backdrop-blur-md cursor-pointer transition-all text-center border border-white/10">
-                        <i class="fas fa-file-import mr-2"></i> Վերբեռնել
-                        <input type="file" id="vcf-upload" accept=".vcf" class="hidden">
-                    </label>
-                    <button onclick="downloadVCF()" id="download-btn" class="flex-1 bg-white text-blue-700 px-4 py-3 rounded-2xl text-sm font-bold shadow-xl transition-all active:scale-95 disabled:opacity-50">
-                        <i class="fas fa-download mr-2"></i> Ներբեռնել
+        <main class="max-w-md mx-auto w-full px-5 py-6 flex-grow">
+            <!-- Գլխավոր Քարտ -->
+            <div class="bg-slate-900 rounded-[2.5rem] p-7 text-white mb-8 shadow-2xl relative overflow-hidden">
+                <div class="relative z-10">
+                    <h2 class="text-2xl font-bold mb-2">Ամպային Բազա</h2>
+                    <p class="text-slate-400 text-xs mb-6">Կոնտակտների ակնթարթային փոխանակում</p>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="bg-white/10 hover:bg-white/15 py-4 rounded-2xl text-[11px] font-bold text-center cursor-pointer transition-all border border-white/5 flex items-center justify-center gap-2">
+                            <i class="fas fa-file-import opacity-60"></i> Վերբեռնել VCF
+                            <input type="file" id="import-vcf" accept=".vcf" class="hidden">
+                        </label>
+                        <button id="export-vcf" class="bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl text-[11px] font-bold shadow-lg shadow-blue-900/40 btn-press transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-download"></i> Ներբեռնել Ցանկը
+                        </button>
+                    </div>
+                </div>
+                <i class="fas fa-address-book absolute -right-6 -bottom-6 text-white/5 text-[10rem] rotate-12"></i>
+            </div>
+
+            <!-- Ավելացման Ձևանմուշ -->
+            <section class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 mb-8">
+                <h3 class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-5">Ավելացնել ձեռքով</h3>
+                <div class="space-y-4">
+                    <input type="text" id="inp-name" placeholder="Անուն Ազգանուն" 
+                        class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500/10 focus:bg-white transition-all text-sm">
+                    <input type="tel" id="inp-phone" placeholder="+374 __ ___ ___" 
+                        class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500/10 focus:bg-white transition-all text-sm">
+                    <button id="add-btn" class="w-full bg-slate-900 text-white py-4.5 rounded-2xl font-bold text-sm btn-press shadow-xl shadow-slate-200 flex items-center justify-center gap-2 py-4">
+                        <i class="fas fa-plus-circle"></i> Ավելացնել Ցանկում
                     </button>
                 </div>
-            </div>
-            <!-- Decorative Icon -->
-            <i class="fas fa-mobile-screen-button absolute -right-6 -bottom-6 opacity-10 text-[10rem] rotate-12"></i>
-        </div>
+            </section>
 
-        <!-- Manual Entry Form -->
-        <section class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-8">
-            <h3 class="text-[10px] font-extrabold mb-5 text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                <span class="w-4 h-[1px] bg-slate-200"></span> Ավելացնել ձեռքով
-            </h3>
-            <div class="space-y-4">
-                <div class="group">
-                    <div class="relative transition-all duration-300">
-                        <i class="fas fa-user absolute left-4 top-4 text-slate-300 group-focus-within:text-blue-500"></i>
-                        <input type="text" id="contact-name" placeholder="Անուն Ազգանուն" 
-                            class="w-full pl-12 pr-4 py-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-100 focus:bg-white focus:ring-4 focus:ring-blue-50/50 outline-none text-sm transition-all">
-                    </div>
+            <!-- Ցուցակ -->
+            <div class="flex justify-between items-center mb-5 px-1">
+                <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Առկա Կոնտակտներ</span>
+                <span id="badge-count" class="text-[10px] font-black bg-blue-600 text-white px-3 py-1 rounded-full">0</span>
+            </div>
+
+            <div id="contact-list" class="space-y-3 pb-10">
+                <!-- Տվյալները կհայտնվեն այստեղ -->
+                <div class="text-center py-20 opacity-20">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                    <p class="text-[10px] font-bold uppercase tracking-tighter">Ստուգվում է...</p>
                 </div>
-                <div class="group">
-                    <div class="relative transition-all duration-300">
-                        <i class="fas fa-phone absolute left-4 top-4 text-slate-300 group-focus-within:text-blue-500"></i>
-                        <input type="tel" id="contact-phone" placeholder="+374 XX XXXXXX" 
-                            class="w-full pl-12 pr-4 py-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-100 focus:bg-white focus:ring-4 focus:ring-blue-50/50 outline-none text-sm transition-all">
-                    </div>
-                </div>
-                <button onclick="handleManualAdd()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 hover:bg-slate-800 shadow-lg shadow-slate-200 transition-all active:scale-[0.98]">
-                    <i class="fas fa-plus-circle"></i> Ավելացնել Ցանկում
-                </button>
             </div>
-        </section>
-
-        <!-- Address Book Header -->
-        <div class="flex justify-between items-end mb-5 px-2">
-            <div>
-                <h3 class="font-black text-xl text-slate-800">Հասցեագիրք</h3>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Cloud Storage</p>
-            </div>
-            <span id="contact-count" class="bg-blue-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-md shadow-blue-100">0</span>
-        </div>
-
-        <!-- List of Contacts -->
-        <div id="contacts-container" class="space-y-4">
-            <!-- Loading State -->
-            <div class="text-center py-20 animate-pulse">
-                <i class="fas fa-circle-notch fa-spin text-slate-200 text-4xl mb-4"></i>
-                <p class="text-slate-400 text-sm font-medium">Բեռնվում է...</p>
-            </div>
-        </div>
-    </main>
-
-    <!-- Floating Sync Indicator -->
-    <div id="sync-indicator" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur text-white px-5 py-3 rounded-full text-xs font-bold shadow-2xl flex items-center gap-3 transition-all transform translate-y-20 opacity-0 z-[60]">
-        <div class="loader ease-linear rounded-full border-2 border-t-2 border-slate-600 h-4 w-4"></div>
-        <span>Տվյալների թարմացում...</span>
+        </main>
     </div>
 
-    <!-- Firebase Implementation -->
+    <!-- Սինխրոնացման Ինդիկատոր -->
+    <div id="sync-toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur text-white px-6 py-3 rounded-full text-[10px] font-bold shadow-2xl flex items-center gap-3 transition-all opacity-0 translate-y-10 pointer-events-none z-[100]">
+        <div class="spinner"></div>
+        ԹԱՐՄԱՑՎՈՒՄ Է...
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // IMPORTANT: For GitHub Pages, use the runtime config provided by the environment
+        // 1. Firebase Մեկնարկ
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        
-        // This ID will identify your "Room" or "Cloud Space"
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'shared-phonebook-production';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'phonesync-verified-prod';
 
-        let localContacts = [];
+        let contacts = [];
 
-        // Auth Listener
+        // 2. Անվտանգության և Կապի ստուգում
         onAuthStateChanged(auth, async (user) => {
-            const statusEl = document.getElementById('connection-status');
             if (user) {
-                statusEl.innerHTML = '<span class="h-2 w-2 rounded-full bg-green-500"></span> Առցանց';
-                statusEl.className = "flex items-center gap-2 text-[10px] font-bold uppercase bg-green-50 px-3 py-1.5 rounded-full text-green-600 border border-green-100";
-                startSync();
+                const tag = document.getElementById('connection-tag');
+                tag.innerHTML = '<span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> Առցանց';
+                tag.classList.replace('text-slate-400', 'text-green-600');
+                tag.classList.replace('bg-slate-100', 'bg-green-50');
+                setupDataListener();
             } else {
                 await signInAnonymously(auth);
             }
         });
 
-        // Real-time Database Synchronization
-        function startSync() {
-            const syncIndicator = document.getElementById('sync-indicator');
-            const contactsRef = collection(db, 'artifacts', appId, 'public', 'data', 'contacts_list');
+        // 3. Տվյալների Սինխրոնացում
+        function setupDataListener() {
+            const toast = document.getElementById('sync-toast');
+            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'contacts');
             
-            onSnapshot(contactsRef, (snapshot) => {
-                // Show sync UI
-                syncIndicator.classList.remove('translate-y-20', 'opacity-0');
+            onSnapshot(colRef, (snap) => {
+                toast.classList.replace('opacity-0', 'opacity-100');
+                toast.classList.replace('translate-y-10', 'translate-y-0');
+
+                contacts = [];
+                snap.forEach(d => contacts.push({id: d.id, ...d.data()}));
+                contacts.sort((a,b) => (a.name || "").localeCompare(b.name || ""));
                 
-                localContacts = [];
-                snapshot.forEach(doc => localContacts.push({ id: doc.id, ...doc.data() }));
-                
-                // Sort by name
-                localContacts.sort((a, b) => a.name.localeCompare(b.name));
-                
-                renderUI();
-                
-                // Hide sync UI after a delay
+                render();
+
                 setTimeout(() => {
-                    syncIndicator.classList.add('translate-y-20', 'opacity-0');
-                }, 800);
-            }, (error) => {
-                console.error("Firebase Sync Error:", error);
+                    toast.classList.replace('opacity-100', 'opacity-0');
+                    toast.classList.replace('translate-y-0', 'translate-y-10');
+                }, 1000);
             });
         }
 
-        // UI Rendering Logic
-        function renderUI() {
-            const container = document.getElementById('contacts-container');
-            const countEl = document.getElementById('contact-count');
-            countEl.innerText = localContacts.length;
+        // 4. Ցուցակի Արտապատկերում
+        function render() {
+            const container = document.getElementById('contact-list');
+            document.getElementById('badge-count').innerText = contacts.length;
 
-            if (localContacts.length === 0) {
+            if (contacts.length === 0) {
                 container.innerHTML = `
-                    <div class="text-center py-16 bg-white rounded-[2rem] border border-dashed border-slate-200">
-                        <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-address-book text-slate-200 text-3xl"></i>
-                        </div>
-                        <p class="text-slate-400 text-sm font-medium">Ոչ մի կոնտակտ չկա</p>
-                        <p class="text-[10px] text-slate-300 mt-1 uppercase tracking-tighter">Վերբեռնեք VCF ֆայլը կամ ավելացրեք ձեռքով</p>
+                    <div class="text-center py-20 bg-white rounded-[2.5rem] border border-dashed border-slate-200">
+                        <i class="fas fa-user-slash text-slate-100 text-6xl mb-4"></i>
+                        <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest">Ցանկը դատարկ է</p>
                     </div>`;
                 return;
             }
 
-            container.innerHTML = localContacts.map(c => `
-                <div class="contact-card bg-white p-4 rounded-3xl flex items-center justify-between shadow-sm border border-slate-50">
+            container.innerHTML = '';
+            contacts.forEach(c => {
+                const div = document.createElement('div');
+                div.className = "contact-item bg-white p-4.5 rounded-3xl flex items-center justify-between shadow-sm border border-slate-50";
+                div.innerHTML = `
                     <div class="flex items-center gap-4">
-                        <div class="bg-gradient-to-tr from-blue-500 to-indigo-600 text-white h-12 w-12 rounded-2xl flex items-center justify-center font-black text-lg shadow-lg shadow-blue-100">
-                            ${c.name ? c.name[0].toUpperCase() : '?'}
+                        <div class="bg-blue-600/5 text-blue-600 h-11 w-11 rounded-2xl flex items-center justify-center font-black">
+                            ${(c.name || "?")[0].toUpperCase()}
                         </div>
                         <div>
-                            <h4 class="font-bold text-slate-800 text-sm tracking-tight">${c.name}</h4>
-                            <p class="text-[11px] text-slate-400 font-semibold mt-0.5 tracking-wider">${c.phone}</p>
+                            <div class="font-bold text-sm text-slate-800">${c.name}</div>
+                            <div class="text-[10px] text-slate-400 font-bold tracking-wider">${c.phone}</div>
                         </div>
                     </div>
-                    <button onclick="window.removeContact('${c.id}')" class="w-10 h-10 flex items-center justify-center text-slate-200 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
-                        <i class="fas fa-trash-alt text-sm"></i>
+                    <button class="delete-trigger text-slate-200 hover:text-red-500 w-10 h-10 flex items-center justify-center transition-colors" data-id="${c.id}">
+                        <i class="fas fa-trash-alt text-xs"></i>
                     </button>
-                </div>
-            `).join('');
+                `;
+                div.querySelector('.delete-trigger').onclick = () => handleDelete(c.id);
+                container.appendChild(div);
+            });
         }
 
-        // Add Manual Contact
-        window.handleManualAdd = async () => {
-            const nameEl = document.getElementById('contact-name');
-            const phoneEl = document.getElementById('contact-phone');
-            
-            if (!nameEl.value || !phoneEl.value) return;
+        // 5. Գործողությունների Թեստավորված Ֆունկցիաներ
+        async function handleAdd() {
+            const n = document.getElementById('inp-name');
+            const p = document.getElementById('inp-phone');
+            const btn = document.getElementById('add-btn');
 
-            const id = "manual_" + Date.now();
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'contacts_list', id), {
-                name: nameEl.value.trim(),
-                phone: phoneEl.value.trim(),
-                timestamp: Date.now()
-            });
+            if (!n.value.trim() || !p.value.trim()) {
+                n.classList.add('border-red-200');
+                setTimeout(() => n.classList.remove('border-red-200'), 1000);
+                return;
+            }
 
-            nameEl.value = '';
-            phoneEl.value = '';
-        };
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div>';
 
-        // Remove Contact
-        window.removeContact = async (id) => {
-            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'contacts_list', id));
-        };
+            try {
+                const docId = `c_${Date.now()}`;
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'contacts', docId), {
+                    name: n.value.trim(),
+                    phone: p.value.trim(),
+                    created: serverTimestamp()
+                });
+                n.value = ''; p.value = '';
+                n.focus();
+            } catch (err) {
+                console.error("Firebase Error:", err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plus-circle"></i> Ավելացնել Ցանկում';
+            }
+        }
 
-        // Download as VCF
-        window.downloadVCF = () => {
-            if (localContacts.length === 0) return;
-            
-            let vcfData = localContacts.map(c => 
-                `BEGIN:VCARD\nVERSION:3.0\nFN:${c.name}\nTEL;TYPE=CELL:${c.phone}\nEND:VCARD`
-            ).join('\n');
-            
-            const blob = new Blob([vcfData], { type: 'text/vcard' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `Contacts_Backup_${new Date().toISOString().split('T')[0]}.vcf`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        };
+        async function handleDelete(id) {
+            try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'contacts', id)); }
+            catch (e) { console.error("Delete Error", e); }
+        }
 
-        // VCF File Import
-        document.getElementById('vcf-upload').addEventListener('change', (e) => {
+        function handleExport() {
+            if (contacts.length === 0) return;
+            const content = contacts.map(c => `BEGIN:VCARD\nVERSION:3.0\nFN:${c.name}\nTEL:${c.phone}\nEND:VCARD`).join('\n');
+            const blob = new Blob([content], {type: 'text/vcard'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'PhoneSync_Export.vcf'; a.click();
+        }
+
+        function handleImport(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
-            reader.onload = async (event) => {
-                const text = event.target.result;
-                const cards = text.split('BEGIN:VCARD');
-                
-                // Start a batch process for efficiency
-                for (let card of cards) {
+            reader.onload = async (evt) => {
+                const vCards = evt.target.result.split('BEGIN:VCARD');
+                for (let card of vCards) {
                     if (!card.includes('END:VCARD')) continue;
-                    
                     const fn = card.match(/FN:(.*)/);
                     const tel = card.match(/TEL.*:(.*)/);
-                    
                     if (fn && tel) {
-                        const name = fn[1].trim();
-                        const phone = tel[1].trim().replace(/\r/g, '');
-                        const id = "vcf_" + Math.random().toString(36).substr(2, 9);
-                        
-                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'contacts_list', id), {
-                            name, phone, timestamp: Date.now()
+                        const id = `vcf_${Math.random().toString(36).substr(2, 7)}`;
+                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'contacts', id), {
+                            name: fn[1].trim(), phone: tel[1].trim().replace(/\r/g, ''), created: serverTimestamp()
                         });
                     }
                 }
             };
             reader.readAsText(file);
-        });
+        }
+
+        // Կապում ենք իրադարձությունները
+        document.getElementById('add-btn').onclick = handleAdd;
+        document.getElementById('export-vcf').onclick = handleExport;
+        document.getElementById('import-vcf').onchange = handleImport;
+
     </script>
 </body>
 </html>
