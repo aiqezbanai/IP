@@ -1,153 +1,256 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Under Maintenance</title>
-    <!-- Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts for a clean look -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        /* Custom styles to apply the font and ensure full height */
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACRA Համակարգի Մուտքի Տվյալներ</title>
 
-        /* Full-screen background container */
-        .background-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-        }
+<style>
 
-        /* Semi-transparent overlay */
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* 50% black transparency */
-        }
-    </style>
+body{
+margin:0;
+padding:30px;
+background:#f4f6fb;
+font-family:Verdana, Geneva, sans-serif;
+}
+
+.card{
+max-width:600px;
+margin:auto;
+background:white;
+border-radius:8px;
+border:1px solid #e4e7ef;
+overflow:hidden;
+}
+
+.header{
+background:#2F2F3B;
+color:#FFFFFE;
+padding:18px 20px;
+display:flex;
+align-items:center;
+gap:12px;
+font-size:20px;
+font-weight:bold;
+}
+
+.logo{
+height:36px;
+}
+
+.content{
+padding:25px;
+}
+
+.field{
+margin-bottom:18px;
+}
+
+.label{
+font-weight:bold;
+margin-bottom:6px;
+display:block;
+}
+
+.input-wrapper{
+position:relative;
+width:100%;
+}
+
+input{
+width:100%;
+padding:10px 70px 10px 10px;
+border:1px solid #d6dbe6;
+border-radius:4px;
+font-size:14px;
+font-family:Verdana, Geneva, sans-serif;
+}
+
+.icon-btn{
+position:absolute;
+top:50%;
+transform:translateY(-50%);
+background:none;
+border:none;
+cursor:pointer;
+padding:4px;
+}
+
+.copy-btn{
+right:36px;
+}
+
+.eye-btn{
+right:6px;
+}
+
+.icon{
+width:18px;
+height:18px;
+stroke:#2f6fed;
+}
+
+.name-box{
+background:#f7f9fc;
+padding:10px;
+border:1px solid #d6dbe6;
+border-radius:4px;
+}
+
+.notice{
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+background:#2f6fed;
+color:white;
+padding:10px 18px;
+border-radius:6px;
+display:none;
+font-size:14px;
+}
+
+a{
+color:#2f6fed;
+text-decoration:none;
+}
+
+.footer{
+background:#f4f6fb;
+text-align:center;
+padding:16px;
+font-size:14px;
+color:#555;
+border-top:1px solid #e4e7ef;
+}
+
+@media screen and (max-width:480px){
+body{padding:15px;}
+.header{font-size:18px;}
+.logo{height:30px;}
+}
+
+</style>
+
+<script>
+
+function copyField(id){
+
+let field=document.getElementById(id);
+navigator.clipboard.writeText(field.value);
+
+let notice=document.getElementById("copyNotice");
+notice.style.display="block";
+
+setTimeout(()=>{
+notice.style.display="none";
+},2000);
+
+}
+
+function togglePassword(){
+
+let pass=document.getElementById("password");
+
+if(pass.type==="password"){
+pass.type="text";
+}else{
+pass.type="password";
+}
+
+}
+
+</script>
+
 </head>
-<body class="bg-gray-900 text-white">
 
-    <!-- Background Image and Overlay -->
-    <div class="background-container">
-        <div class="overlay"></div>
-    </div>
+<body>
 
-    <!-- Main Content Wrapper -->
-    <div class="flex flex-col min-h-screen justify-between p-4 sm:p-6 md:p-8">
+<div class="card">
 
-        <!-- Header Content -->
-        <header class="text-center w-full max-w-5xl mx-auto pt-10">
-            <!-- This space can be used for a logo if needed in the future -->
-        </header>
+<div class="header">
 
-        <!-- Main Centered Content -->
-        <main class="flex-grow flex flex-col items-center justify-center text-center">
-            <div class="w-full max-w-4xl mx-auto">
-                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black uppercase tracking-wider mb-4 text-shadow-lg">
-                    Under Maintenance
-                </h1>
-                <p class="text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-10 text-gray-300">
-                    Our website is currently undergoing scheduled maintenance. We're working hard to improve our services and we'll be back online soon!
-                </p>
+<img src="https://via.placeholder.com/120x40.png" class="logo">
 
-                <!-- Countdown Timer -->
-                <div id="countdown" class="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-8 max-w-2xl mx-auto">
-                    <!-- Days -->
-                    <div class="bg-white/10 backdrop-blur-sm p-4 sm:p-6 rounded-lg">
-                        <div id="days" class="text-4xl sm:text-5xl md:text-6xl font-bold">00</div>
-                        <div class="text-xs sm:text-sm uppercase tracking-widest mt-1 text-gray-400">Days</div>
-                    </div>
-                    <!-- Hours -->
-                    <div class="bg-white/10 backdrop-blur-sm p-4 sm:p-6 rounded-lg">
-                        <div id="hours" class="text-4xl sm:text-5xl md:text-6xl font-bold">00</div>
-                        <div class="text-xs sm:text-sm uppercase tracking-widest mt-1 text-gray-400">Hours</div>
-                    </div>
-                    <!-- Minutes -->
-                    <div class="bg-white/10 backdrop-blur-sm p-4 sm:p-6 rounded-lg">
-                        <div id="minutes" class="text-4xl sm:text-5xl md:text-6xl font-bold">00</div>
-                        <div class="text-xs sm:text-sm uppercase tracking-widest mt-1 text-gray-400">Minutes</div>
-                    </div>
-                    <!-- Seconds -->
-                    <div class="bg-white/10 backdrop-blur-sm p-4 sm:p-6 rounded-lg">
-                        <div id="seconds" class="text-4xl sm:text-5xl md:text-6xl font-bold">00</div>
-                        <div class="text-xs sm:text-sm uppercase tracking-widest mt-1 text-gray-400">Seconds</div>
-                    </div>
-                </div>
-            </div>
-        </main>
+<span>ACRA Համակարգի Մուտքի Տվյալներ</span>
 
-        <!-- Footer -->
-        <footer class="text-center w-full max-w-5xl mx-auto pb-5">
-            <p class="text-xs sm:text-sm text-gray-400">Copyright © | AI QEZ BAN | All rights reserved by law.</p>
-        </footer>
+</div>
 
-    </div>
+<div class="content">
 
-    <script>
-        // --- COUNTDOWN TIMER SCRIPT ---
+<div class="field">
+<span class="label">ACRA Հղում</span>
+<a href="#/" target="_blank">https://example.com</a>
+</div>
 
-        // Set the date we're counting down to (e.g., 10 days from now)
-        const countDownDate = new Date();
-        countDownDate.setDate(countDownDate.getDate() + 10);
+<div class="field">
+<span class="label">Օգտագործող</span>
+<div class="name-box">
+Անուն Ազգանուն
+</div>
+</div>
 
-        // Get elements to display the countdown
-        const daysEl = document.getElementById('days');
-        const hoursEl = document.getElementById('hours');
-        const minutesEl = document.getElementById('minutes');
-        const secondsEl = document.getElementById('seconds');
+<div class="field">
+<span class="label">Մուտքային անուն</span>
 
-        // Update the countdown every 1 second
-        const countdownInterval = setInterval(function() {
-            // Get today's date and time
-            const now = new Date().getTime();
+<div class="input-wrapper">
 
-            // Find the distance between now and the count down date
-            const distance = countDownDate - now;
+<input id="username" type="text" value="anun.login" readonly>
 
-            // Time calculations for days, hours, minutes and seconds
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+<button class="icon-btn copy-btn" onclick="copyField('username')">
 
-            // Function to format number with a leading zero if it's less than 10
-            const formatTime = (time) => time < 10 ? `0${time}` : time;
+<svg class="icon" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<rect x="9" y="9" width="13" height="13"></rect>
+<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+</svg>
 
-            // Display the result in the elements
-            daysEl.innerHTML = formatTime(days);
-            hoursEl.innerHTML = formatTime(hours);
-            minutesEl.innerHTML = formatTime(minutes);
-            secondsEl.innerHTML = formatTime(seconds);
+</button>
 
-            // If the countdown is finished, display a message
-            if (distance < 0) {
-                clearInterval(countdownInterval);
-                document.getElementById("countdown").innerHTML = `
-                    <div class="col-span-2 sm:col-span-4 text-2xl md:text-3xl font-bold p-6 bg-green-500/20 rounded-lg">
-                        We are back online!
-                    </div>
-                `;
-            }
-        }, 1000);
-    </script>
+</div>
+
+</div>
+
+<div class="field">
+
+<span class="label">Գաղտնաբառ</span>
+
+<div class="input-wrapper">
+
+<input id="password" type="password" value="P@ssw0rd123" readonly>
+
+<button class="icon-btn copy-btn" onclick="copyField('password')">
+
+<svg class="icon" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<rect x="9" y="9" width="13" height="13"></rect>
+<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+</svg>
+
+</button>
+
+<button class="icon-btn eye-btn" onclick="togglePassword()">
+
+<svg class="icon" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+<circle cx="12" cy="12" r="3"></circle>
+</svg>
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="footer">
+Brand Name
+</div>
+
+</div>
+
+<div id="copyNotice" class="notice">
+Պատճենվեց!
+</div>
 
 </body>
 </html>
-
