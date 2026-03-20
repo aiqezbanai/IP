@@ -698,7 +698,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `${state.data[0].name}-structure.txt`;
+            link.download = `${state.data[0].name}-tree.txt`;
             link.click();
             URL.revokeObjectURL(url);
         }
