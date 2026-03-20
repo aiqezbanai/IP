@@ -367,7 +367,7 @@
         }
     </style>
 </head>
-<body onmousedown="return false" onselectstart="return false" id="center">
+<body>
 
     <div class="app-container">
         
@@ -726,6 +726,24 @@
         render();
 
     </script>
+    
+    <script>
+document.addEventListener("keydown", function(e) {
+  if (e.ctrlKey && e.key === "u") {
+    e.preventDefault();
+    alert("Source viewing disabled!");
+  }
+  if (e.key === "F12") {
+    e.preventDefault();
+    alert("Developer tools blocked!");
+  }
+});
+document.addEventListener("contextmenu", function(e) {
+  e.preventDefault();
+  alert("Right click disabled!");
+});
+</script>
+
 </body>
 </html>
 
